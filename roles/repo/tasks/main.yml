@@ -1,0 +1,10 @@
+---
+- ansible.builtin.import_tasks: repo_{{ repo_state }}.yml
+
+# Обновляем apt cache если были измененения в репозиториях
+- name: Apt cache update (if changed repo or apt_key)
+  when: repo_update_cache and ( repo_changed is changed or repo_apt_key_changed is changed )
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  

@@ -1,0 +1,16 @@
+---
+- name: repo_present | Add apt signing key
+  when: repo_key_url is defined
+  ansible.builtin.include_tasks: apt_key.yml
+
+- name: repo_present | Add repository to /etc/apt/sources.list.d/{{ repo_name }}.list
+  ansible.builtin.template:
+    src   : sources.list.j2
+    dest  : "/etc/apt/sources.list.d/{{ repo_name }}.list"
+    owner : root
+    group : root
+    mode  : '0644'
+  become: true
+  register: repo_changed
+
+
