@@ -1,3 +1,7 @@
 # Ansible Collection - daowolf2000.common
 
-Documentation for the collection.
+Моя коллекция общих и системных ролей для использования в своих проектах.
+
+## Роли
+
+- [repo](roles/repo/README.md) - добавление пользовательского репозитория
