@@ -1,0 +1,7 @@
+---
+- name: Apply settings to user {{ users_item.key }}
+  ansible.builtin.include_tasks: user_{{ users_item.value.state | d('present') }}.yml
+  loop: "{{ users_all | combine(users_group) | combine(users_host) | dict2items }}"
+  loop_control:
+    loop_var: users_item
+

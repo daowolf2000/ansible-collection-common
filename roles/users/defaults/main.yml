@@ -1,0 +1,30 @@
+users_all   : {}  # Пользователи общие для всех
+users_group : {}  # Пользователи общие для группы хостов
+users_host  : {}  # Пользователи данного хоста
+
+
+# Значения по умолчанию
+users_default:
+    # Основные параметры
+    state           : present             # Добавить / удалить пользователя (present / absent)
+    uid             : "{{ omit }}"        # UID пользователя
+    gid             : "{{ omit }}"        # GID основной группы пользователя
+    group           : "{{ omit }}"        # Имя основной группы пользователя
+    groups          : []                  # Перечень групп пользователей
+    groups_append   : true                # Добавить groups к имеющимся группам пользователя (иначе только groups)?
+    home            : "{{ omit }}"        # Путь к домашнему каталогу
+    home_create     : true                # Создать домашний каталог?
+    home_move       : true                # Перемещение домашнего католога (если old_home != new_home)
+    home_remove     : true                # Удаление домашнего каталога и почты (при state=absent)
+    home_force      : true                # Принудительное удаление (при state=absent)
+    password        : '!'                 # Пароль (по умолчанию - вход по паролю запрещен)
+    password_update : always              # Если пароль не совпадает, то обновить пароль
+    shell           : /bin/bash           # Оболочка пользователя
+    system          : false               # Системный пользователь?
+    comment         : Create from Ansible # Описание пользователя
+    # SSH
+    ssh_auth_keys   : "{{ omit }}"        # Ключ для добавления в authorized_keys
+    # SUDO
+    sudo            : false               # Включить sudo
+    sudo_nopass     : false               # Разрешить sudo без пароля
+    sudo_commands   : [ ALL ]             # Перечень доступных команды

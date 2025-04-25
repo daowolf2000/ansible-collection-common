@@ -1,0 +1,1 @@
+{{ users_item.key }} ALL=(ALL) {% if users_current.sudo_nopass %}NOPASSWD: {% endif %}{{ users_current.sudo_commands | join(', ') }}

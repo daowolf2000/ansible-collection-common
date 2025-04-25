@@ -1,0 +1,65 @@
+---
+- name: "{{ users_item.key }} | Combine user config with default settings"
+  ansible.builtin.set_fact:
+    users_current: "{{ users_default | combine(users_item.value) }}"
+
+- debug:
+    var: users_current
+
+- name: "{{ users_item.key }} | Create user {{ users_item.key }}"
+  ansible.builtin.user: # noqa jinja[spacing]
+    name            : "{{ users_item.key }}"
+    state           : "{{ users_current.state | default(omit) }}"
+    uid             : "{{ users_current.uid | default(omit) }}"
+    group           : "{{ users_current.group | default(omit) }}"
+    groups          : "{{ users_current.groups | default(omit) }}"
+    append          : "{{ users_current.groups_append | default(omit) }}"
+    home            : "{{ users_current.home | default(omit) }}"
+    createhome      : "{{ users_current.home_create | default(omit) }}"
+    move_home       : "{{ users_current.home_move | default(omit) }}"
+    remove          : "{{ users_current.home_remove | default(omit) }}"
+    force           : "{{ users_current.home_force | default(omit) }}"
+    password        : "{{ users_current.password | default(omit) }}"
+    update_password : "{{ users_current.password_update | default(omit) }}"
+    shell           : "{{ users_current.shell | default(omit) }}"
+    system          : "{{ users_current.system | default(omit) }}"
+    comment         : "{{ users_current.comment | default(omit) }}"
+  register: user_info
+
+- debug:
+    var: user_info
+
+- name: "{{ users_item.key }} | Change gid"
+  when: users_current.gid is defined
+  ansible.builtin.group: # noqa jinja[spacing]
+    state : "{{ users_current.state | default(omit) }}"
+    name  : "{{ users_current.group | default(users_item.key) }}"
+    gid   : "{{ users_current.gid | default(omit) }}"
+    system: "{{ users_current.system | default(omit) }}"
+
+# SSH settings
+
+- name: "{{ users_item.key }} | Set authorized key"
+  when: users_current.ssh_auth_keys is defined
+  ansible.posix.authorized_key:
+    user: "{{ users_item.key }}"
+    key: "{{ users_current.ssh_auth_keys }}"
+
+# Sudo settings
+
+- name: "{{ users_item.key }} | Add sudo settings"
+  when: users_current.sudo | bool
+  ansible.builtin.template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/user_{{ users_item.key }}
+    owner: root
+    group: root
+    mode: "0440"
+    validate: 'visudo -cf %s'  # Добавленная валидация
+
+- name: "{{ users_item.key }} | Remove sudo setting"
+  when: not users_current.sudo | bool
+  ansible.builtin.file:
+    path: /etc/sudoers.d/user_{{ users_item.key }}
+    state: absent
+

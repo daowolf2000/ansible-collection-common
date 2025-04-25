@@ -1,0 +1,21 @@
+---
+- name: "{{ users_item.key }} | Combine user config with default settings"
+  ansible.builtin.set_fact:
+    users_current: "{{ users_default | combine(users_item.value) }}"
+
+- name: "{{ users_item.key }} | Remove user"
+  ansible.builtin.user: # noqa jinja[spacing]
+    name            : "{{ users_item.key }}"
+    state           : absent
+    remove          : "{{ users_current.home_remove | default(omit) }}"
+    force           : "{{ users_current.home_force | default(omit) }}"
+
+- name: "{{ users_item.key }} | Remove user config files"
+  ansible.builtin.file:
+    dest: "{{ user_absent_item }}"
+    state: absent
+  loop:
+    - /etc/ssh/sshd_config.d/user_{{ users_item.key }}
+    - /etc/sudoers.d/user_{{ users_item.key }}
+  loop_control:
+    loop_var: user_absent_item
