@@ -2,8 +2,11 @@
 {% set seen_entries = {ansible_fqdn: true, ansible_hostname: true} %}
 127.0.0.1       localhost
 127.0.1.1       {{ '%-32s' % ansible_fqdn }} {{ ansible_hostname }}
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 3767ce4 (feat(hosts): Add check for double entries)
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
@@ -12,8 +15,9 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-# Manual defined hosts
 {% set merged_dict = hosts_all | combine(hosts_group) | combine(hosts_host) %}
+{% if merged_dict | length > 0 %}
+# Manual defined hosts
 {% for name, ip in merged_dict.items() %}
 {% set short_name = name.split('.') %}
 {% if short_name[0] not in seen_entries and name not in seen_entries %}
@@ -22,6 +26,7 @@ ff02::2 ip6-allrouters
 {% set _ = seen_entries.update({short_name[0]: true}) %}
 {% endif %}
 {% endfor %}
+{% endif %}
 
 {% if hosts_inventory %}
 # Hosts from inventory
