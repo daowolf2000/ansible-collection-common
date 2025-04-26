@@ -67,4 +67,4 @@
     name: "{{ item }}"
     append: true
     groups: docker
-  loop: "{{ docker_user | list }}"
+  loop: "{{ [docker_user] | flatten }}"
