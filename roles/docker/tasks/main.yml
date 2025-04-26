@@ -27,7 +27,7 @@
 
 - name: Configure repository
   ansible.builtin.include_role:
-    name: daowolf2000.common.repo
+    name: daowolf2000.linux.repo
   vars:
     repo_name:    "docker"
     repo_extra:   "arch={{ os_info.deb_arch }}"

@@ -1,7 +1,7 @@
 ---
 - name: nvidia_ctk | Configure repository
   ansible.builtin.include_role:
-    name: daowolf2000.common.repo
+    name: daowolf2000.linux.repo
   vars:
     repo_name:    "nvidia-container-toolkit"
     repo_source:  "https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /"

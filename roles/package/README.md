@@ -21,5 +21,5 @@
       - zabbix-agent
 
   roles:
-    - daowolf2000.common.package
+    - daowolf2000.linux.package
 ```

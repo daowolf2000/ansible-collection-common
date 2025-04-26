@@ -25,7 +25,7 @@
     repo_key_dearmor  : true
   
   roles:
-    - daowolf2000.common.repo
+    - daowolf2000.linux.repo
   
   post_tasks:
     - name: Install docker from added repo
@@ -40,7 +40,7 @@
 # Включение в другую роль
 - name: Configure repository
   ansible.builtin.include_role:
-    name: daowolf2000.common.repo
+    name: daowolf2000.linux.repo
   vars:
     repo_name:    "nvidia-conteiner-toolkit"
     repo_source:  'https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /'

@@ -23,5 +23,5 @@
       vds.mycorp.local: 10.18.1.1
 
   roles:
-    - daowolf2000.common.hosts
+    - daowolf2000.linux.hosts
 ```
