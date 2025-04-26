@@ -1,0 +1,82 @@
+---
+- name: Check terraform install and version
+  ansible.builtin.shell: |
+    set -o pipefail && terraform version -json | grep -o '"terraform_version": "[^"]*"' | cut -d '"' -f4
+  args:
+    executable: /bin/bash
+  changed_when: false
+  failed_when: false
+  register: terraform_cur_ver
+
+- name: Debug (check version)
+  ansible.builtin.debug:
+    msg:
+      - "Current version:  {{ terraform_cur_ver.stdout | d('none') }}"
+      - "Required version: {{ terraform_ver }}"
+      - "Need update:      {{ terraform_cur_ver.stdout != terraform_ver }}"
+    verbosity: 1
+
+- name: Install Terraform
+  when:
+    - terraform_cur_ver is failed
+    - terraform_cur_ver.stdout != terraform_ver
+  block:
+    - name: Create temp dir
+      ansible.builtin.tempfile:
+        state : directory
+        prefix: tf_
+      register: terraform_tempdir
+
+    - name: Download hash file
+      ansible.builtin.get_url:
+        url   : "{{ terraform_repo }}/{{ terraform_ver }}/terraform_{{ terraform_ver }}_SHA256SUMS"
+        dest  : "{{ terraform_tempdir.path }}/SHA256SUMS"
+        mode  : '0644'
+
+    - name: Get hash sum
+      ansible.builtin.shell: |
+        set -o pipefail ; grep terraform_{{ terraform_ver }}_{{ terraform_arch }}.zip "{{ terraform_tempdir.path }}/SHA256SUMS" | awk '{print $1}'
+      args:
+        executable: /bin/bash
+      changed_when: false
+      register: terraform_hash_sum
+
+    - name: Download Terraform binary
+      ansible.builtin.get_url:
+        url     : "{{ terraform_repo }}/{{ terraform_ver }}/terraform_{{ terraform_ver }}_{{ terraform_arch }}.zip"
+        dest    : "{{ terraform_tempdir.path }}/terraform_{{ terraform_ver }}_{{ terraform_arch }}.zip"
+        mode    : '0644'
+        checksum: "sha256:{{ terraform_hash_sum.stdout }}"
+      tags: [print_action]
+
+    - name: Unzip Terraform archive
+      ansible.builtin.unarchive:
+        src       : "{{ terraform_tempdir.path }}/terraform_{{ terraform_ver }}_{{ terraform_arch }}.zip"
+        dest      : "{{ terraform_path }}"
+        mode      : '0755'
+        remote_src: true
+      tags: [print_action]
+      become: true
+
+  always:
+    - name: Delete temp file
+      ansible.builtin.file:
+        path  : "{{ terraform_tempdir.path }}*"
+        state : absent
+
+- name: Get getent for "{{ terraform_user }}"
+  ansible.builtin.getent:
+    database: passwd
+    key     : "{{ terraform_user }}"
+    split   : ":"
+
+- name: Get home dir
+  ansible.builtin.set_fact:
+    terraform_home: "{{ getent_passwd[terraform_user][4] }}"
+
+- name: Configure mirror for terraform
+  ansible.builtin.template:
+    src   : .terraformrc.j2
+    dest  : "{{ terraform_home }}/.terraformrc"
+    owner : "{{ terraform_user }}"
+    mode  : '0644'

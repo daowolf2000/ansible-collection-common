@@ -1,0 +1,11 @@
+{% if terraform_mirror is defined and terraform_mirror != "none" and terraform_mirror | trim != "" %}
+provider_installation {
+    network_mirror {
+        url     = "{{ terraform_mirror }}"
+        include = ["registry.terraform.io/*/*"]
+    }
+    direct {
+        exclude = ["registry.terraform.io/*/*"]
+    }
+}
+{% endif %}
