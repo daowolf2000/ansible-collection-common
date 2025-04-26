@@ -5,5 +5,5 @@ repo_state  : present             # Добавить (present) / Удалить 
 repo_update_cache: true           # Обновить кэш репозитория (если были изменения)
 
 repo_key_url      : "{{ omit }}"  # Ссылка на ключ GPG
-repo_key_id       : "{{ omit }}"  # ID ключа
+repo_key_id       : null  # ID ключа
 repo_key_dearmor  : false         # Нужен dearmor для ключа?
