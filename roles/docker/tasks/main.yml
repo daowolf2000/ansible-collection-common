@@ -1,0 +1,70 @@
+---
+- name: Define DEB arch
+  ansible.builtin.command: |
+    dpkg --print-architecture
+  changed_when: false
+  register: _deb_arch
+
+- name: Define os codename
+  ansible.builtin.shell: |
+    source /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: _os_codename
+
+- name: Set variable os_info
+  ansible.builtin.set_fact:
+    os_info:
+      deb_arch  : "{{ _deb_arch.stdout }}"
+      codename  : "{{ _os_codename.stdout }}"
+      os_family : "{{ os_info_family_map[ansible_distribution] }}"
+  vars:
+    os_info_family_map:
+      Linux Mint: ubuntu
+      Ubuntu:     ubuntu
+      Debian:     debian
+
+- name: Configure repository
+  ansible.builtin.include_role:
+    name: daowolf2000.common.repo
+  vars:
+    repo_name:    "docker"
+    repo_extra:   "arch={{ os_info.deb_arch }}"
+    repo_source:  "https://download.docker.com/linux/{{ os_info.os_family }} {{ os_info.codename }} stable"
+    repo_key_url: "https://download.docker.com/linux/debian/gpg"
+    repo_key_dearmor: true
+
+- name: Install Docker Engine and related packages
+  ansible.builtin.apt:
+    name  : "{{ docker_package }}"
+    state : present
+
+- name: Enable Docker to start at boot
+  ansible.builtin.systemd:
+    name    : docker
+    enabled : true
+    state   : started
+
+- name: Install Nvidia CTK
+  when: docker_nvidia_ctk_autoinstall
+  block:
+    - name: Check Nvidia lspci present
+      ansible.builtin.shell: |
+        set -o pipefail ; lspci | grep -i nvidia
+      args:
+        executable: /bin/bash
+      changed_when: false
+      register: docker_nvidia_present
+      failed_when: false
+
+    - name: Install Nvidia Container Toolkit
+      when: docker_nvidia_present.stdout != ''
+      ansible.builtin.include_tasks: nvidia_ctk.yml
+
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    append: true
+    groups: docker
+  loop: "{{ docker_user | list }}"

@@ -1,0 +1,11 @@
+docker_user: []     # Пользователи, которые будут добавлены в группу docker (может быть строкой или списком)
+
+docker_package:     # Список устанавливаемых пакетов
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-compose
+  - docker-compose-plugin
+
+docker_nvidia_ctk_autoinstall : true    # Автоматическая установка Nvidia Container Toolkit (если есть видеокарта Nvidia)
+docker_nvidia_ctk_no_cgroups  : false   # Опция no-cgroup для Nvidia Container Toolkit
