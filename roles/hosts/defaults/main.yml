@@ -1,0 +1,5 @@
+hosts_all   : {}
+hosts_group : {}
+hosts_host  : {}
+
+hosts_inventory: true # Добавить хосты из ansible-inventory в /etc/hosts
