@@ -1,7 +1,7 @@
 # ANSIBLE MANAGMENT FILE. DO NOT EDIT MANUALLY.
-
+{% set seen_entries = {ansible_fqdn: true, ansible_hostname: true} %}
 127.0.0.1       localhost
-{{ '%-16s' % ansible_default_ipv4.address }} {{ '%-32s' % ansible_fqdn }} {{ ansible_hostname }}
+127.0.1.1       {{ '%-32s' % ansible_fqdn }} {{ ansible_hostname }}
 
 
 
@@ -16,13 +16,21 @@ ff02::2 ip6-allrouters
 {% set merged_dict = hosts_all | combine(hosts_group) | combine(hosts_host) %}
 {% for name, ip in merged_dict.items() %}
 {% set short_name = name.split('.') %}
+{% if short_name[0] not in seen_entries and name not in seen_entries %}
 {{ '%-16s' % ip }} {{ '%-32s' % name }} {{ short_name[0] }}
+{% set _ = seen_entries.update({name: true}) %}
+{% set _ = seen_entries.update({short_name[0]: true}) %}
+{% endif %}
 {% endfor %}
 
 {% if hosts_inventory %}
 # Hosts from inventory
 {% for item in groups['all'] %}
 {% set short_name = item.split('.') %}
+{% if short_name[0] not in seen_entries and item not in seen_entries %}
 {{ '%-16s' % hostvars[item].ansible_host }} {{ '%-32s' % item }} {{ short_name[0] }}
+{% set _ = seen_entries.update({item: true}) %}
+{% set _ = seen_entries.update({short_name[0]: true}) %}
+{% endif %}
 {% endfor %}
 {% endif %}
