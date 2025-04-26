@@ -2,11 +2,6 @@
 {% set seen_entries = {ansible_fqdn: true, ansible_hostname: true} %}
 127.0.0.1       localhost
 127.0.1.1       {{ '%-32s' % ansible_fqdn }} {{ ansible_hostname }}
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 3767ce4 (feat(hosts): Add check for double entries)
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
