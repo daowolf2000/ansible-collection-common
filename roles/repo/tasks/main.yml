@@ -1,10 +1,34 @@
 ---
-- ansible.builtin.import_tasks: repo_{{ repo_state }}.yml
+- name: Check parameters
+  ansible.builtin.assert:
+    that:
+      - repo_name is defined
+      - repo_name | trim != ''
+      - repo_source is defined or repo_state == 'absent'
+      - repo_source | trim != '' or repo_state == 'absent'
+      - repo_state == 'present' or repo_state == 'absent'
 
-# Обновляем apt cache если были измененения в репозиториях
-- name: Apt cache update (if changed repo or apt_key)
-  when: repo_update_cache and ( repo_changed is changed or repo_apt_key_changed is changed )
-  ansible.builtin.apt:
-    update_cache: true
-  become: true
-  
+- name: "{{ repo_name }} |  Add apt signing key"
+  when: repo_key_url is defined
+  ansible.builtin.include_tasks: apt_key.yml
+
+- name: "{{ repo_name }} |  Remove apt signing key"
+  when: ( not repo_key_url is defined ) or ( repo_state == 'absent' )
+  ansible.builtin.file:
+    path  : "{{ repo_key_file }}"
+    state : absent
+
+- name: "{{ repo_name }} | Configure repository"
+  ansible.builtin.apt_repository:
+    repo: >-
+      {% set options = [] %}
+      {% if repo_meta is not none and repo_meta != omit and repo_meta | trim != '' %}
+      {%   set _ = options.append(repo_meta) %}
+      {% endif %}
+      {% if repo_key_url is not none and repo_key_url != omit and repo_key_url | trim != '' %}
+      {%   set _ = options.append('signed-by=' + repo_key_file) %}
+      {% endif %}
+      deb{% if options | length > 0 %} [{{ options | join(' ') }}]{% endif %} {{ repo_source }}
+    filename: "{{ repo_name }}"
+    state: "{{ repo_state }}"
+    update_cache: "{{ repo_update_cache }}"

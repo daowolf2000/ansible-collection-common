@@ -1,9 +1,9 @@
-repo_name   : "{{ undef(hint='Need repo_name ') }}"  # Имя репозитория (используется при именовании файла)
-repo_source : "{{ undef(hint='Need repo_source') }}" # Может быть массивом
-repo_meta   : "{{ d(omit) }}"                        # Метаданные репозитория
-repo_state  : present                                # Добавить (present) / Удалить (absent)
-repo_update_cache: true                              # Обновить кэш репозитория (если были изменения)
+repo_name   : "{{ omit }}"        # (Обязательно!) Имя репозитория (используется при именовании файла)
+repo_source : "{{ omit }}"        # Может быть массивом
+repo_meta   : "{{ omit }}"        # Метаданные репозитория
+repo_state  : present             # Добавить (present) / Удалить (absent)
+repo_update_cache: true           # Обновить кэш репозитория (если были изменения)
 
-repo_key_url      : "{{ d(omit) }}"       # Ссылка на ключ GPG
-repo_key_id       : null                  # ID ключа
-repo_key_dearmor  : false                 # Нужен dearmor для ключа?
+repo_key_url      : "{{ omit }}"  # Ссылка на ключ GPG
+repo_key_id       : "{{ omit }}"  # ID ключа
+repo_key_dearmor  : false         # Нужен dearmor для ключа?

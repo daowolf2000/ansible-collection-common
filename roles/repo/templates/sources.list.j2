@@ -1,4 +1,0 @@
-{% set sources = repo_source if (repo_source is iterable and repo_source is not string) else [repo_source] %}
-{% for item in sources %}
-deb {% if repo_meta is defined or repo_meta_key is defined %}[{{ (repo_meta | d('')) ~ ' ' ~ (repo_meta_key | d('')) }}] {% endif %}{{ item }}
-{% endfor %}

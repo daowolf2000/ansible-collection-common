@@ -1,8 +1,4 @@
 ---
 # Определение путей
-repo_file     : "/etc/apt/sources.list.d/{{ repo_name }}.list"
 repo_key_path : "/etc/apt/keyrings"                         
 repo_key_file : "{{ repo_key_path }}/{{ repo_name }}-archive-keyring.gpg"
-
-# Заглушки для переменных
-repo_apt_key_changed  : "{{ omit }}"

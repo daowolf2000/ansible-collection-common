@@ -1,52 +1,47 @@
 ---
-- name: apt_key | Set repo metadata
-  ansible.builtin.set_fact:
-    repo_meta_key: "{{ 'signed-by=' ~ repo_key_file }}"
-
-- name: apt_key | Check if matching GPG key already exists.
+- name: "{{ repo_name }} - key | Check if matching GPG key already exists."
   ansible.builtin.shell:
     cmd: |-
       # Если файл отсутствует — возвращаем код выхода 2
       [ -f {{ repo_key_file | quote }} ] || exit 2
-       # Проверка наличия ключей из файла ключа репозитория
+      # Проверка наличия ключей из файла ключа репозитория
       gpg --list-keys --no-default-keyring --keyring {{ repo_key_file | quote }} {{ repo_key_id or '' }}
       exit $?
   register: should_download_gpg_key
   failed_when: should_download_gpg_key.rc not in (0, 2) # Допустимые коды возврата: успех (0), отсутствие файла (2)
   changed_when: false
 
-- name: apt_key | Add GPG key {{ repo_name }}
+- name: "{{ repo_name }} - key | Add GPG key"
   when: should_download_gpg_key.rc != 0
   block:
-    - name: apt_key | Create directory for keyring
+    - name: "{{ repo_name }} - key | Create directory for keyring"
       ansible.builtin.file:
         path  : '{{ repo_key_path }}'
         state : directory
         owner : root
         group : root
         mode  : '0755'
-      become: true
       register: gpg_tempfile
 
-    - name: apt_key | Create temporary file for {{ repo_name }}.
+    - name: "{{ repo_name }} - key | Create temporary file"
       ansible.builtin.tempfile:
         state: file
       register: gpg_tempfile
 
-    - name: apt_key | Create temporary file for armored {{ repo_name }}.
+    - name: "{{ repo_name }} - key | Create temporary file"
       ansible.builtin.tempfile:
         state: file
       register: asc_tempfile
       when: repo_key_dearmor
 
-    - name: apt_key | Download GPG key {{ repo_name }}
+    - name: "{{ repo_name }} - key | Download GPG key"
       ansible.builtin.get_url:
         url   : "{{ repo_key_url }}"
         dest  : "{{ asc_tempfile.path if repo_key_dearmor else gpg_tempfile.path }}"
         mode  : '0600'
         force : true
 
-    - name: apt_key | Dearmor GPG key {{ repo_name }}
+    - name: "{{ repo_name }} - key | Dearmor GPG key"
       ansible.builtin.command:
         argv:
           - gpg
@@ -59,8 +54,7 @@
       changed_when: true
       when: repo_key_dearmor
 
-    - name: apt_key | Copy GPG key to {{ repo_key_file }}.
-      become: true
+    - name: "{{ repo_name }} - key | Copy GPG key to {{ repo_key_file }}"
       ansible.builtin.copy:
         remote_src: true
         src   : "{{ gpg_tempfile.path }}"
@@ -68,17 +62,16 @@
         owner : root
         group : root
         mode  : '0644'
-      register: repo_apt_key_changed
 
   # Независимо от успеха/неудачи блока выполняем удаление временных файлов
   always: 
-    - name: apt_key | Remove temporary file for armored {{ repo_name }}.
+    - name: "{{ repo_name }} - key | Remove temporary file for armored"
       ansible.builtin.file:
         path  : "{{ asc_tempfile.path }}"
         state : absent
       when: repo_key_dearmor
 
-    - name: apt_key | Remove temporary file for {{ repo_name }}.
+    - name: "{{ repo_name }} - key | Remove temporary file"
       ansible.builtin.file:
         path  : "{{ gpg_tempfile.path }}"
         state : absent
