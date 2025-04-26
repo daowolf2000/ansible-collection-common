@@ -3,9 +3,6 @@
   ansible.builtin.set_fact:
     users_current: "{{ users_default | combine(users_item.value) }}"
 
-- debug:
-    var: users_current
-
 - name: "{{ users_item.key }} | Create user {{ users_item.key }}"
   ansible.builtin.user: # noqa jinja[spacing]
     name            : "{{ users_item.key }}"
@@ -25,9 +22,6 @@
     system          : "{{ users_current.system | default(omit) }}"
     comment         : "{{ users_current.comment | default(omit) }}"
   register: user_info
-
-- debug:
-    var: user_info
 
 - name: "{{ users_item.key }} | Change gid"
   when: users_current.gid is defined
@@ -62,4 +56,3 @@
   ansible.builtin.file:
     path: /etc/sudoers.d/user_{{ users_item.key }}
     state: absent
-
