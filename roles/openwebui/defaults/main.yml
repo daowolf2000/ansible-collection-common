@@ -1,0 +1,5 @@
+openwebui_user   : "{{ common_user }}"  # Пользователь из под которого будет запускаться приложение
+openwebui_path   : "/opt/openwebui"     # Каталог установки приложения
+openwebui_env    : "{{ omit }}"         # Переменные окружения для openwebui
+openwebui_port   : "3000"               # Порт по которому будет доступен openwebui
+openwebui_volume : "./open-webui"       # Каталог для хранения данных приложения

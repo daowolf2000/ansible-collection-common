@@ -1,0 +1,21 @@
+version: '3'
+services:
+  openwebui:
+{% if nvidia_present %}
+    image: ghcr.io/open-webui/open-webui:cuda
+{% else %}
+    image: ghcr.io/open-webui/open-webui:main
+{% endif %}
+    ports:
+      - "{{ openwebui_port }}:8080"
+    volumes:
+      - {{ openwebui_volume }}:/app/backend/data
+{% if nvidia_present %}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+{% endif %}

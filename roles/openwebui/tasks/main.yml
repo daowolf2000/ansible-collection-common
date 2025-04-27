@@ -1,0 +1,17 @@
+---
+
+- name: Check Nvidia present
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.common
+    tasks_from: nvidia_present.yml
+
+- name: Install Open-WebUI
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.common
+    tasks_from: compose_app
+  vars:
+    x_name: openwebui
+    x_user: "{{ openwebui_user }}"
+    x_path: "{{ openwebui_path }}"
+    x_env:  "{{ openwebui_env }}"
+    x_content: "{{ lookup('template', 'openwebui.j2') }}"
