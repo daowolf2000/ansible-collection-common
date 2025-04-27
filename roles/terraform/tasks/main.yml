@@ -64,19 +64,17 @@
         path  : "{{ terraform_tempdir.path }}*"
         state : absent
 
-- name: Get getent for "{{ terraform_user }}"
-  ansible.builtin.getent:
-    database: passwd
-    key     : "{{ terraform_user }}"
-    split   : ":"
-
-- name: Get home dir
-  ansible.builtin.set_fact:
-    terraform_home: "{{ getent_passwd[terraform_user][4] }}"
+- name: Get userinfo
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.common
+    tasks_from: userinfo.yml
+  vars:
+    x_user: "{{ terraform_user }}"
 
 - name: Configure mirror for terraform
   ansible.builtin.template:
     src   : .terraformrc.j2
-    dest  : "{{ terraform_home }}/.terraformrc"
-    owner : "{{ terraform_user }}"
+    dest  : "{{ userinfo.homedir }}/.terraformrc"
+    owner : "{{ userinfo.uid }}"
+    group : "{{ userinfo.gid }}"
     mode  : '0644'
