@@ -7,7 +7,7 @@
 
 - name: Install Open-WebUI
   ansible.builtin.include_role:
-    name: daowolf2000.linux.common
+    name: daowolf2000.linux.x
     tasks_from: compose_app
   vars:
     x_name: openwebui

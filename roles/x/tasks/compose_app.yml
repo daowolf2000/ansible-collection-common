@@ -10,10 +10,11 @@
   vars: # noqa jinja[spacing]
     compose_app_name  : "{{ x_name    }}"                                       # Имя приложения/сервиса (используется в systemd и пути)
     compose_content   : "{{ x_content }}"                                       # Содержимое для docker-compose.yml
+    compose_app_user  : "{{ x_user   | default(common_user) }}"                 # Пользователь из под которого запускается приложение
     compose_env       : "{{ x_env    | default(omit)       }}"                  # Содержимое .env файла
-    compose_app_state : "{{ x_state  | default('started')  }}"                  # Статус приложения после установки
     compose_app_enable: "{{ x_enable | default(true)       }}"                  # Включить автозапуск приложения
     compose_app_path  : "{{ x_path   | default('/opt/' + compose_app_name) }}"  # Путь установки приложения
+    compose_force_restart: "{{ x_force_restart | d(false) }}"                   # Принудительный перезапуск приложения
 
   block:
 
@@ -36,10 +37,20 @@
         groups: docker
         append: true
 
-    - name: Get userinfo
-      ansible.builtin.include_tasks: userinfo.yml
-      vars:
-        x_user: "{{ compose_app_user }}"
+    - name: Get userinfo from passwd for user {{ compose_app_user }}
+      ansible.builtin.getent:
+        database: passwd
+        key     : "{{ compose_app_user }}"
+        split   : ":"
+
+
+    - name: Set variable userinfo
+      ansible.builtin.set_fact:
+        userinfo:
+          uid     : "{{ getent_passwd[compose_app_user][1] }}"
+          gid     : "{{ getent_passwd[compose_app_user][2] }}"
+          homedir : "{{ getent_passwd[compose_app_user][4] }}"
+          shell   : "{{ getent_passwd[compose_app_user][5] }}"
 
     - name: Create folder "{{ compose_app_path }}"
       ansible.builtin.file:
@@ -47,21 +58,26 @@
         owner : "{{ userinfo.uid }}"
         group : "{{ userinfo.gid }}"
         state : directory
-        mode  : "0750"
+        mode  : "0770"
 
     - name: Create docker-compose.yml
       ansible.builtin.copy:
         content : "{{ compose_content }}"
         dest    : "{{ compose_app_path }}/docker-compose.yml"
-        mode    : "0644"
+        owner   : "{{ userinfo.uid }}"
+        group   : "{{ userinfo.gid }}"
+        mode    : "0660"
       register: res_compose
       tags: [print_action]
 
     - name: Create .env file
+      when: compose_env is defined and compose_env != omit
       ansible.builtin.copy:
         content : "{{ compose_env }}"
         dest    : "{{ compose_app_path }}/.env"
-        mode    : "0644"
+        owner   : "{{ userinfo.uid }}"
+        group   : "{{ userinfo.gid }}"
+        mode    : "0660"
       register: res_env
       tags: [print_action]
 
@@ -81,7 +97,7 @@
         daemon_reload: true
 
     - name: Restart service {{ compose_app_name }}
-      when: res_compose is changed or res_env is changed
+      when: res_compose is changed or res_env is changed or compose_force_restart
       ansible.builtin.systemd:
         name    : "{{ compose_app_name }}"
         enabled : "{{ compose_app_enable }}"

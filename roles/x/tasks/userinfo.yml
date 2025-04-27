@@ -1,4 +1,5 @@
 ---
+
 - name: Get userinfo from passwd for user {{ x_user }}
   ansible.builtin.getent:
     database: passwd

@@ -66,7 +66,7 @@
 
 - name: Get userinfo
   ansible.builtin.include_role:
-    name: daowolf2000.linux.common
+    name: daowolf2000.linux.x
     tasks_from: userinfo.yml
   vars:
     x_user: "{{ terraform_user }}"
