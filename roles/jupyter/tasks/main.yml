@@ -1,0 +1,60 @@
+---
+- name: Get userinfo
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.x
+    tasks_from: userinfo.yml
+  vars:
+    x_user: "{{ jupyter_user }}"
+
+- name: Create custom docker image
+  when: jupyter_requirements_content is defined and jupyter_requirements_content != omit 
+  block:
+
+    - name: Create folder
+      ansible.builtin.file:
+        path: "{{ jupyter_path }}"
+        state: directory
+        owner: "{{ userinfo.uid }}"
+        group: "{{ userinfo.gid }}"
+        mode: "0770"
+
+    - name: Copy requirements.txt
+      ansible.builtin.copy:
+        content: "{{ jupyter_requirements_content }}"
+        dest: "{{ jupyter_path }}/requirements.txt"
+        owner: "{{ userinfo.uid }}"
+        group: "{{ userinfo.gid }}"
+        mode: "0660"
+      register: res_req
+
+    - name: Copy Dockerfile
+      ansible.builtin.template:
+        src: "Dockerfile.j2"
+        dest: "{{ jupyter_path }}/Dockerfile"
+        owner: "{{ userinfo.uid }}"
+        group: "{{ userinfo.gid }}"
+        mode: "0660"
+      register: res_dfile
+
+    - name: Build Image
+      when: res_req is changed or res_dfile is changed
+      community.docker.docker_image:
+        name: "custom_jupyter:latest"
+        build:
+          path: "{{ jupyter_path }}"
+        source: build
+      register: res_build
+
+- name: Install Jupyter
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.x
+    tasks_from: compose_app
+  vars:
+    x_name: jupyter
+    x_user: "{{ jupyter_user }}"
+    x_path: "{{ jupyter_path }}"
+    x_env:  "{{ jupyter_env }}"
+    x_content: "{{ lookup('template', 'jupyter.j2') }}"
+    x_force_restart: "{{ res_build.changed | d(false) }}"          # Принудительный перезапуск если изменился образ
+
+# TODO: https://jupyter-docker-stacks.readthedocs.io/en/latest/using/recipes.html#using-mamba-install-recommended-or-pip-install-in-a-child-docker-image
