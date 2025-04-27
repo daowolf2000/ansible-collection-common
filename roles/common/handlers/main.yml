@@ -7,3 +7,8 @@
   ansible.builtin.service:
     name: docker
     state: restarted
+
+- name: Restart zabbix-agent
+  ansible.builtin.service:
+    name: zabbix-agent
+    state: restarted

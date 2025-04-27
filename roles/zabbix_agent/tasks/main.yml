@@ -1,0 +1,14 @@
+---
+- name: Install zabbix-agent
+  ansible.builtin.apt:
+    name:  zabbix-agent
+    state: present
+
+- name: Configure zabbix-agent
+  ansible.builtin.template:
+    src:    zabbix_agentd.conf.j2
+    dest:   /etc/zabbix/zabbix_agentd.conf
+    owner:  root
+    group:  root
+    mode:   "0644"
+  notify: Restart zabbix-agent

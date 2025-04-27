@@ -1,0 +1,11 @@
+PidFile=/run/zabbix/zabbix_agentd.pid
+DebugLevel={{ zabbix_agent_debug }}
+LogFile=/var/log/zabbix-agent/zabbix_agentd.log
+LogFileSize=1
+Include=/etc/zabbix/zabbix_agentd.conf.d/*.conf
+HostnameItem={{ zabbix_agent_hostname }}
+ListenIP=0.0.0.0
+ListenPort={{ zabbix_agent_port }}
+Timeout=30
+Server={{ zabbix_agent_server }}
+ServerActive={{ zabbix_agent_server_active }}
