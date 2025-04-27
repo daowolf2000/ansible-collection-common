@@ -1,0 +1,15 @@
+---
+- name: Get userinfo from passwd for user {{ x_user }}
+  ansible.builtin.getent:
+    database: passwd
+    key     : "{{ x_user }}"
+    split   : ":"
+
+
+- name: Set variable userinfo
+  ansible.builtin.set_fact:
+    userinfo:
+      uid     : "{{ getent_passwd[x_user][1] }}"
+      gid     : "{{ getent_passwd[x_user][2] }}"
+      homedir : "{{ getent_passwd[x_user][4] }}"
+      shell   : "{{ getent_passwd[x_user][5] }}"
