@@ -27,6 +27,20 @@ dependencies:
 - Добавление записей из Ansible inventory (опционально)
 - Проверка записей на дубликаты
 
+### [jupyter](roles/jupyter/defaults/main.yml)
+
+- Установка jupyter с docker образа с помощью docker-compose
+- Создается служба systemd для автозапуска и управления приложением
+- Поддержка переменных окружения
+- Запуск Jupyter server с параметрами
+- Добавление пакетов в образ через создание custom образа
+
+### [openwebui](roles/openwebui/defaults/main.yml)
+
+- Установка openwebui с docker образа с помощью docker-compose
+- Создается служба systemd для автозапуска и управления приложением
+- Поддержка переменных окружения
+
 ### [package](roles/package/defaults/main.yml)
 
 - Установка заданного списка пакетов
@@ -54,3 +68,11 @@ dependencies:
 - Возможность задать uid/gid для пользователя
 - Добавление ssh ключей в authorized_keys
 - Настройка sudo для пользователя
+
+### x
+
+Набор задач-функций для использования в других ролях
+
+### [zabbix_agent](roles/zabbix_agent/defaults/main.yml)
+
+- Установка и настройка zabbix-agent
