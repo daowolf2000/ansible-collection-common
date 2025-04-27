@@ -1,0 +1,88 @@
+---
+- name: Check parameters
+  ansible.builtin.assert:
+    that:
+      - x_name is defined
+      - x_content is defined
+    fail_msg: "x_name and x_content must be defined"
+
+- name: Install app with docker compose
+  vars: # noqa jinja[spacing]
+    compose_app_name  : "{{ x_name    }}"                                       # Имя приложения/сервиса (используется в systemd и пути)
+    compose_content   : "{{ x_content }}"                                       # Содержимое для docker-compose.yml
+    compose_env       : "{{ x_env    | default(omit)       }}"                  # Содержимое .env файла
+    compose_app_state : "{{ x_state  | default('started')  }}"                  # Статус приложения после установки
+    compose_app_enable: "{{ x_enable | default(true)       }}"                  # Включить автозапуск приложения
+    compose_app_path  : "{{ x_path   | default('/opt/' + compose_app_name) }}"  # Путь установки приложения
+
+  block:
+
+    - name: Get Docker compose version
+      ansible.builtin.command: docker compose version
+      register: docker_version
+      failed_when: false
+      changed_when: false
+
+    - name: Install Docker
+      when: docker_version.rc != 0
+      ansible.builtin.include_role:
+        name: daowolf2000.linux.docker
+      vars:
+        docker_user: "{{ compose_app_user }}"
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        user: "{{ compose_app_user }}"
+        groups: docker
+        append: true
+
+    - name: Get userinfo
+      ansible.builtin.include_tasks: userinfo.yml
+      vars:
+        x_user: "{{ compose_app_user }}"
+
+    - name: Create folder "{{ compose_app_path }}"
+      ansible.builtin.file:
+        path  : "{{ compose_app_path }}"
+        owner : "{{ userinfo.uid }}"
+        group : "{{ userinfo.gid }}"
+        state : directory
+        mode  : "0750"
+
+    - name: Create docker-compose.yml
+      ansible.builtin.copy:
+        content : "{{ compose_content }}"
+        dest    : "{{ compose_app_path }}/docker-compose.yml"
+        mode    : "0644"
+      register: res_compose
+      tags: [print_action]
+
+    - name: Create .env file
+      ansible.builtin.copy:
+        content : "{{ compose_env }}"
+        dest    : "{{ compose_app_path }}/.env"
+        mode    : "0644"
+      register: res_env
+      tags: [print_action]
+
+    - name: Create service
+      ansible.builtin.template:
+        src: compose_service.j2
+        dest: "/etc/systemd/system/{{ compose_app_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      register: res_service
+      tags: [print_action]
+
+    - name: Reload systemd daemon # noqa no-handler
+      when: res_service is changed
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart service {{ compose_app_name }}
+      when: res_compose is changed or res_env is changed
+      ansible.builtin.systemd:
+        name    : "{{ compose_app_name }}"
+        enabled : "{{ compose_app_enable }}"
+        state   : restarted    

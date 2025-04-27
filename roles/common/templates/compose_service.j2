@@ -1,0 +1,17 @@
+[Unit]
+Description=Docker compose app service for {{ compose_app_name }} 
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User={{ userinfo.uid }}
+Group={{ userinfo.gid }}
+WorkingDirectory={{ compose_app_path }}
+ExecStartPre=/usr/bin/bash -lc "docker compose -f docker-compose.yml down"
+ExecStart=/usr/bin/bash -lc "docker compose -f docker-compose.yml up"
+ExecStop=/usr/bin/bash -lc "docker compose -f docker-compose.yml down"
+
+[Install]
+WantedBy=multi-user.target
