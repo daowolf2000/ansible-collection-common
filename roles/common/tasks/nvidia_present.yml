@@ -1,0 +1,13 @@
+---
+- name: Check Nvidia lspci present
+  ansible.builtin.shell: |
+    set -o pipefail ; lspci | grep -i nvidia
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: result
+  failed_when: false
+    
+- name: Set variable nvidia_output
+  ansible.builtin.set_fact:
+    nvidia_present: "{{ true if result.stdout != '' else false }}"
