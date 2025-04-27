@@ -2,7 +2,7 @@
 
 - name: Check Nvidia present
   ansible.builtin.include_role:
-    name: daowolf2000.linux.common
+    name: daowolf2000.linux.x
     tasks_from: nvidia_present.yml
 
 - name: Install Open-WebUI
