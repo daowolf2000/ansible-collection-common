@@ -1,0 +1,11 @@
+- name: Check prerequest for ssh_proxy
+  when: ssh_proxy is defined
+  ansible.builtin.apt:
+    package:
+      - autossh
+
+- name: "{{ ssh_proxy_item.value.state }} ssh proxy {{ ssh_proxy_item.key }}"
+  ansible.builtin.include_tasks: "ssh_proxy_{{ ssh_proxy_item.value.state }}.yml"
+  loop: "{{ ssh_proxy }}"
+  loop_control:
+    loop_var: ssh_proxy_item

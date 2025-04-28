@@ -1,0 +1,20 @@
+{% if ssh_proxy_item.value.type == 'socks' %}
+{% set ssh_str = '-D ' ~ ssh_proxy_item.value.local ~ ' ' ~ ssh_proxy_item.value.sshd %}
+{% elif ssh_proxy_item.value.type == 'reverse' %}
+{% set ssh_str = '-R ' ~ ssh_proxy_item.value.remote ~ ':' ~ ssh_proxy_item.value.local ~ ' ' ~ ssh_proxy_item.value.sshd %}
+{% else %}
+{% set ssh_str = '-L ' ~ ssh_proxy_item.value.local ~ ':' ~ ssh_proxy_item.value.remote ~ ' ' ~ ssh_proxy_item.value.sshd %}
+{% endif %}
+[Unit]
+Description=SSH Tunnel {{ ssh_proxy_item.key }}
+After=network.target
+
+[Service]
+User={{ ssh_proxy_user }}
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/autossh -M 0 {{ ssh_proxy_opts}} {{ ssh_str }}
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

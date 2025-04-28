@@ -1,0 +1,21 @@
+ssh_proxy_opts: "-nNT -o ClientAliveInterval=15 -o ClientAliveCountMax=4 -o GatewayPorts=yes" 
+
+# Пользователь от которого будут устанавливаться ssh proxy соединения
+# Также этот пользователь будет хранить ключи для установки ssh соединений
+ssh_proxy_user: "{{ common_user }}" 
+
+ssh_proxy: {}   # noqa var-naming[no-role-prefix]
+
+# Описание параметров
+# -------------------
+# ssh_proxy:
+#   example:                          # Имя прокси (используется в наименовании systemd.service)
+#     type  : forward|reverse|socks   # Тип прокси
+#     state : present|absent          # Добавить (present) / Удалить (absent) (по-умолчанию - present)
+#     remote: 0.0.0.0:2022            # адрес:порт на локальной системе (не используется для socks-proxy)
+#     local : localhost:22            # адрес:порт на удаленной системе
+#     sshd  : user@outpost            # подключение к удаленному ssh-серверу
+
+
+
+
