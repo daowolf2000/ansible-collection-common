@@ -56,3 +56,31 @@
   ansible.builtin.file:
     path: /etc/sudoers.d/user_{{ users_item.key }}
     state: absent
+
+- name: Clone dotfiles repo
+  ansible.builtin.git:
+    repo: "{{ users_current.dotfiles_repo }}"
+    dest: "{{ user_info.home }}/.dotfiles"  
+    version: "{{ users_current.dotfiles_ver | d(omit) }}"
+    clone: true
+    update: true 
+  become: true
+  become_user: "{{ users_item.key }}"
+
+- name: Set owner and group for dotfiles directory
+  ansible.builtin.file:
+    path: "{{ user_info.home }}/.dotfiles"
+    owner: "{{ users_item.key }}"
+    group: "{{ users_current.group | default(users_item.key) }}"
+    recurse: yes
+
+- name: Link files
+  ansible.builtin.script:
+    cmd: link_dotfiles.sh "{{ user_info.home }}/.dotfiles" "{{ user_info.home }}"
+  register: script_result
+  changed_when: script_result.stdout_lines | select("match", "^LINK") | list | length > 0
+
+- name: Result of script link_dotfiles
+  ansible.builtin.debug:
+    var: script_result
+    verbosity: 1
