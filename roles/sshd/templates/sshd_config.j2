@@ -1,0 +1,6 @@
+Port {{ sshd_port }}
+AddressFamily {{ sshd_addr_family }}
+PermitRootLogin {{ sshd_permit_root_login }}
+PasswordAuthentication {{ sshd_password_auth }}
+PubkeyAuthentication {{ sshd_pubkey_auth}}
+Subsystem sftp /usr/lib/openssh/sftp-server
