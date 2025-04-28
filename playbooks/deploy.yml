@@ -7,6 +7,7 @@
     # Базовая настройка
     - ansible.builtin.import_role: { name: daowolf2000.linux.package }
     - ansible.builtin.import_role: { name: daowolf2000.linux.hosts }
+    - ansible.builtin.import_role: { name: daowolf2000.linux.sshd }
     - ansible.builtin.import_role: { name: daowolf2000.linux.users }
 
     # Применение дополнительных ролей
