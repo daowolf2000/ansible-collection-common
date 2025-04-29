@@ -29,5 +29,5 @@ users_default:
     sudo_nopass     : false               # Разрешить sudo без пароля
     sudo_commands   : [ ALL ]             # Перечень доступных команды
     # DOTFILES
-    dotfiles_repo   : "https://github.com/daowolf2000/.dotfiles.git" # Репозиторий, где хранятся dotfiles
+    dotfiles_repo   : "{{ omit }}"        # Git репозиторий, где хранятся dotfiles
     dotfiles_ver    : "{{ omit }}"        # Версия dotfiles
