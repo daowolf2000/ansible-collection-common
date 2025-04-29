@@ -1,0 +1,3 @@
+#!/bin/bash
+ansible-galaxy collection install . --force
+ansible-playbook daowolf2000.linux.deploy -e target=$@
