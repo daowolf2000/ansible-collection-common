@@ -1,8 +1,11 @@
-ssh_proxy_opts: "-nNT -o ClientAliveInterval=15 -o ClientAliveCountMax=4 -o GatewayPorts=yes" 
+ssh_proxy_opts: "-nNT -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o GatewayPorts=yes" 
 
 # Пользователь от которого будут устанавливаться ssh proxy соединения
 # Также этот пользователь будет хранить ключи для установки ssh соединений
 ssh_proxy_user: "{{ common_user }}" 
+
+ssh_proxy_autokey: true         # Автоматическая генерация и управление ключами ssh
+ssh_proxy_add_known_hosts: true # Добавлять sshd хост в known_hosts
 
 ssh_proxy: {}   # noqa var-naming[no-role-prefix]
 
@@ -15,7 +18,7 @@ ssh_proxy: {}   # noqa var-naming[no-role-prefix]
 #     remote: 0.0.0.0:2022            # адрес:порт на локальной системе (не используется для socks-proxy)
 #     local : localhost:22            # адрес:порт на удаленной системе
 #     sshd  : user@outpost            # подключение к удаленному ssh-серверу
-
+#     port  : 2222                    # порт для подключения к ssh
 
 
 

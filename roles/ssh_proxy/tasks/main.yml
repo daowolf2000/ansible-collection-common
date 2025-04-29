@@ -4,8 +4,8 @@
     package:
       - autossh
 
-- name: "{{ ssh_proxy_item.value.state }} ssh proxy {{ ssh_proxy_item.key }}"
-  ansible.builtin.include_tasks: "ssh_proxy_{{ ssh_proxy_item.value.state }}.yml"
-  loop: "{{ ssh_proxy }}"
+- name: "{{ ssh_proxy_item.value.state | d('present') }} ssh proxy {{ ssh_proxy_item.key }}"
+  ansible.builtin.include_tasks: "ssh_proxy_{{ ssh_proxy_item.value.state | d('present') }}.yml"
+  loop: "{{ ssh_proxy | dict2items }}"
   loop_control:
     loop_var: ssh_proxy_item

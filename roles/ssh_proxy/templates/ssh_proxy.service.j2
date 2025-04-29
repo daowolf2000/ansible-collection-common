@@ -5,6 +5,11 @@
 {% else %}
 {% set ssh_str = '-L ' ~ ssh_proxy_item.value.local ~ ':' ~ ssh_proxy_item.value.remote ~ ' ' ~ ssh_proxy_item.value.sshd %}
 {% endif %}
+{% if ssh_proxy_item.value.port is defined %}
+{% set ssh_port = '-p ' ~ ssh_proxy_item.value.port %}
+{% else%}
+{% set ssh_port = '' %}
+{% endif %}
 [Unit]
 Description=SSH Tunnel {{ ssh_proxy_item.key }}
 After=network.target
@@ -12,7 +17,7 @@ After=network.target
 [Service]
 User={{ ssh_proxy_user }}
 Environment="AUTOSSH_GATETIME=0"
-ExecStart=/usr/bin/autossh -M 0 {{ ssh_proxy_opts}} {{ ssh_str }}
+ExecStart=/usr/bin/autossh -M 0 {{ ssh_proxy_opts}} {{ ssh_port }} {{ ssh_str }} -i ~/.ssh/id_{{ ssh_proxy_item.key }}
 Restart=always
 RestartSec=10
 

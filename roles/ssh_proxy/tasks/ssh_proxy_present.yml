@@ -1,86 +1,26 @@
 ---
-- name: Get userinfo
+- name: Ssh key configuration (auto)
+  when: ssh_proxy_autokey
   ansible.builtin.include_role:
     name: x
-    tasks_from: userinfo
+    tasks_from: ssh_gen_key.yml
   vars:
-    x_user: "{{ ssh_proxy_user }}"
+    x_user  : "{{ ssh_proxy_user }}"
+    x_key   : "{{ ssh_proxy_item.key }}"
+    x_copyto: "{{ ssh_proxy_item.value.sshd }}"
 
-- name: Check keys exists
-  ansible.builtin.stat:
-    path: "{{ userinfo.homedir }}/.ssh/id_{{ ssh_proxy_item.key }}"
-  register: res_key_present
-
-- name: Gen keys for {{ ssh_proxy_item.key }}
-  when: not res_key_present.stat.exists
-  delegate_to: localhost
-  block:
-    - name: Create temp folder
-      ansible.builtin.tempfile:
-        state: directory
-        prefix: "keys_{{ ssh_proxy_item.key }}_"
-      register: tmp_key_path
-
-    - name: Generate ed25519 SSH key for {{ ssh_proxy_user }} if absent
-      ansible.builtin.command: |
-        ssh-keygen -t ed25519 -f "{{ tmp_key_path }}/id_{{ ssh_proxy_item.key }}" -N '' -C '{{ ssh_proxy_user }}@{{ inventory_hostname }}'
-      args:
-        creates: "{{ tmp_key_path.path }}/id_{{ ssh_proxy_item.key }}"
-
-    - name: Read private key content
-      ansible.builtin.slurp:
-        src: "{{ tmp_key_path.path }}/id_{{ ssh_proxy_item.key }}"
-      register: private_key_content
-
-    - name: Read public key content
-      ansible.builtin.slurp:
-        src: "{{ tmp_key_path.path }}/id_{{ ssh_proxy_item.key }}.pub"
-      register: public_key_content
-
-  always:
-    - name: Delete temp folder
-      ansible.builtin.file:
-        path: "{{ tmp_key_path }}"
-        state: absent
-
-- name: Provision keys to {{ inventory_hostname }}
-  when: not res_key_present.stat.exists
-  become: yes
+- name: "{{ ssh_proxy_item.key }} | Add to known_hosts"
+  when: ssh_proxy_add_known_hosts
+  become: true
   become_user: "{{ ssh_proxy_user }}"
-  block:
-    - name: Check key folder exists
-      ansible.builtin.file:
-        path  : "{{ userinfo.homedir }}/.ssh"
-        mode  : "0700"
-
-    - name: Copy generated SSH keys to remote host
-      when: not res_key_present.stat.exists
-      ansible.builtin.copy:
-        content : "{{ private_key_content.content | b64decode }}"
-        dest    : "{{ userinfo.homedir }}/.ssh/id_{{ ssh_proxy_item.key }}"
-        mode    : '0600'
-
-    - name: Copy generated SSH public key to remote host
-      when: not res_key_present.stat.exists
-      ansible.builtin.copy:
-        content : "{{ public_key_content.content | b64decode }}"
-        dest    : "{{ userinfo.homedir }}/.ssh/id_{{ ssh_proxy_item.key }}.pub"
-        mode    : '0644'
-
-
-
-- name: Provision ssh auth key to sshd server
-  block:
-    - name: Get pair name and host from {{ ssh_proxy_item.value.sshd }}
-      ansible.builtin.set_fact:
-        tmp_sshd_user: "{{ ssh_proxy_item.value.sshd.split('@')[0] }}"
-        tmp_sshd_host: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"
-    
-    - name: Copy auth key to {{ tmp_sshd_host }}
-      ansible.posix.authorized_key:
-        user: "{{ tmp_sshd_user }}"
-        key : "{{ lookup('file', userinfo.homedir ~ '/.ssh/id_' ~ ssh_proxy_item.key) }}"
-
+  ansible.builtin.known_hosts:
+    name: "{{ name_host }}"  # IP/домен целевого хоста
+    key: "{{ lookup('pipe', 'ssh-keyscan -p {{ ssh_port }} {{ remote_host }}') }}"
+    path: "{{ known_hosts_path | default('~/.ssh/known_hosts') }}"
+  vars:
+    remote_host: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"  # Замените на ваш хост
+    ssh_port: "{{ ssh_proxy_item.value.port | default(22) }}"
+    name_host: "{{ '[' ~ remote_host ~ ']:' ~ ssh_port if ssh_port != 22 else remote_host }}"  
 
 - name: "{{ ssh_proxy_item.key }} | Create service"
   ansible.builtin.template:
@@ -92,7 +32,7 @@
   register: res_service
 
 - name: "{{ ssh_proxy_item.key }} | Restart service"
-  when: res_service is changed
+  when: res_service is changed or ssh_gen_key.changed
   ansible.builtin.systemd:
     daemon_reload: true
     name    : "ssh_proxy_{{ ssh_proxy_item.key }}"
