@@ -2,116 +2,127 @@
 
 - name: Function gen_ssh_key
   vars:
-    x_user  : "{{ x_user      | d(common_user) }}"  # Пользователь для которого генерируются ключи
-    x_key   : "{{ x_key       | d('ansible')}}"     # Идентификатор (часть имени файла) ключа
-    x_force : "{{ key_update  | d(false) }}"        # Принудительное обновление ключей
-    x_type  : "{{ x_type      | d('ed25519') }}"    # Тип ключа
-    x_copyto: "{{ x_copyto    | d(omit) }}"         # user@host - Куда скопировать pub key
+    o_user  : "{{ x_user      | d(common_user) }}"  # Пользователь для которого генерируются ключи
+    o_key   : "{{ x_key       | d('ansible')}}"     # Идентификатор (часть имени файла) ключа
+    o_force : "{{ x_force     | d(key_update) | d(false) }}"        # Принудительное обновление ключей
+    o_type  : "{{ x_type      | d('ed25519') }}"    # Тип ключа
+    o_copyto: "{{ x_copyto    | d(omit) }}"         # user@host - Куда скопировать pub key
 
   block:
-    - name: gen_ssh_key {{ x_key }} | Get userinfo from passwd for user {{ x_user }}
+    - name: gen_ssh_key {{ o_key }} | Get userinfo from passwd for user {{ o_user }}
       ansible.builtin.getent:
         database: passwd
-        key     : "{{ x_user }}"
+        key     : "{{ o_user }}"
         split   : ":"
 
-    - name: gen_ssh_key {{ x_key }} | Set variable x_userinfo
+    - name: gen_ssh_key {{ o_key }} | Set variable o_userinfo
       ansible.builtin.set_fact:
-        x_userinfo:
-          uid     : "{{ getent_passwd[x_user][1] }}"
-          gid     : "{{ getent_passwd[x_user][2] }}"
-          t_homedir : "{{ getent_passwd[x_user][4] }}"
-          shell   : "{{ getent_passwd[x_user][5] }}"
+        o_userinfo:
+          uid     : "{{ getent_passwd[o_user][1] }}"
+          gid     : "{{ getent_passwd[o_user][2] }}"
+          homedir : "{{ getent_passwd[o_user][4] }}"
+          shell   : "{{ getent_passwd[o_user][5] }}"
 
-    - name: gen_ssh_key {{ x_key }} | Check .ssh folder exists
+    - name: gen_ssh_key {{ o_key }} | Check .ssh folder exists
       ansible.builtin.file:
-        path: "{{ x_userinfo.homedir }}/.ssh"
+        path: "{{ o_userinfo.homedir }}/.ssh"
         state: directory
-        owner: "{{ x_userinfo.uid }}"
-        group: "{{ x_userinfo.gid }}"
+        owner: "{{ o_userinfo.uid }}"
+        group: "{{ o_userinfo.gid }}"
         mode: "0700"
 
-    - name: gen_ssh_key {{ x_key }} | Check ssh key id_{{ x_key }} exists
+    - name: gen_ssh_key {{ o_key }} | Check ssh key id_{{ o_key }} exists
       ansible.builtin.stat:
-        path: "{{ x_userinfo.homedir }}/id_{{ x_key }}.pub"
+        path: "{{ o_userinfo.homedir }}/id_{{ o_key }}.pub"
       register: res_check_key
 
-    - name: gen_ssh_key {{ x_key }} | Force update key
-      when: x_force and res_check_key.stat.exists
+    - name: gen_ssh_key {{ o_key }} | Force update key
+      when: o_force and res_check_key.stat.exists
       become: true
-      become_user: "{{ x_user }}"
+      become_user: "{{ o_user }}"
       block:
-        - name: gen_ssh_key {{ x_key }} | Read current id_key.pub
+        - name: gen_ssh_key {{ o_key }} | Read current id_key.pub
           ansible.builtin.slurp:
-            src: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}.pub"
+            src: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub"
           register: pub_key_content
 
-        - name: gen_ssh_key {{ x_key }} | Append id_key.pub to id_key.pub.old
+        - name: gen_ssh_key {{ o_key }} | Append id_key.pub to id_key.pub.old
           when: pub_key_content.content is defined
           ansible.builtin.lineinfile:
-            path: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}.pub.old"
+            path: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub.old"
             line: "{{ item }}"
             create: yes
             mode: "0644"
             insertafter: EOF
           with_items: "{{ (pub_key_content.content | b64decode).splitlines() }}"
 
-        - name: gen_ssh_key {{ x_key }} | Remove old keys (public)
+        - name: gen_ssh_key {{ o_key }} | Remove old keys (public)
           ansible.builtin.file:
-            path: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}.pub"
+            path: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub"
             state: absent
 
-        - name: gen_ssh_key {{ x_key }} | Remove old keys (private)
+        - name: gen_ssh_key {{ o_key }} | Remove old keys (private)
           ansible.builtin.file:
-            path: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}"
+            path: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}"
             state: absent
 
-    - name: gen_ssh_key {{ x_key }} | Remove keys from remote server
+    - name: gen_ssh_key {{ o_key }} | Check old keys exists
+      when: o_copyto is defined
+      ansible.builtin.stat:
+        path: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub.old"
+      register: x_old_key_file
+
+    - name: gen_ssh_key {{ o_key }} | Remove keys from remote server
       when:
-        - x_copyto is defined
-        - x_copyto != omit
+        - o_copyto is defined
+        - o_copyto != omit
+        - x_old_key_file.stat.exists
       block:
-        - name: gen_ssh_key {{ x_key }} | Read all keys from id_key.pub.old
+
+        - name: gen_ssh_key {{ o_key }} | Read all keys from id_key.pub.old
           ansible.builtin.slurp:
-            src: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}.pub.old"
+            src: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub.old"
           register: x_old_keys_content
 
-        - name: gen_ssh_key {{ x_key }} | Remove each key on {{ x_copyto }}
-          delegate_to: "{{ x_copyto.split('@')[1] }}"
+        - name: gen_ssh_key {{ o_key }} | Remove each key on {{ o_copyto }}
+          delegate_to: "{{ o_copyto.split('@')[1] }}"
           ansible.builtin.authorized_key:
-            user  : "{{ x_copyto.split('@')[0] }}"
+            user  : "{{ o_copyto.split('@')[0] }}"
             key   : "{{ x_old_key_item }}"
             state : absent
           loop: "{{ (x_old_keys_content.content | b64decode).splitlines() }}"
           loop_control:
             loop_var: x_old_key_item
 
-    - name: gen_ssh_key {{ x_key }} | Generate SSH key for {{ x_key}}
+    - name: gen_ssh_key {{ o_key }} | Generate SSH key for {{ o_key }}
       become: true
-      become_user: "{{ x_user }}"
+      become_user: "{{ o_user }}"
       ansible.builtin.command: |
-        ssh-keygen -t {{ x_type }} -f "{{ x_userinfo.homedir }}/id_{{ x_key }}" -N '' -C '{{ x_user }}@{{ inventory_hostname }}'
+        ssh-keygen -t {{ o_type }} -f "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}" -N '' -C '{{ o_user }}@{{ inventory_hostname }}'
       args:
-        creates: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}"
+        creates: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}"
       register: res_gen_key
 
-    - name: gen_ssh_key {{ x_key }} | Get public key content
+    - name: Result of keygen
+      ansible.builtin.debug:
+        var: res_gen_key
+        verbosity: 1
+
+    - name: gen_ssh_key {{ o_key }} | Get public key content
       ansible.builtin.slurp:
-        src: "{{ x_userinfo.homedir }}/.ssh/id_{{ x_key }}.pub"
+        src: "{{ o_userinfo.homedir }}/.ssh/id_{{ o_key }}.pub"
       register: x_ssh_key_public
 
-    - name: gen_ssh_key {{ x_key }} | Copy auth key to remote serve
-      when:
-        - x_copyto is defined
-        - x_copyto != omit
+    - name: gen_ssh_key {{ o_key }} | Copy auth key to remote serve
+      when: o_copyto is defined
       delegate_to: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"
       ansible.posix.authorized_key:
         user: "{{ ssh_proxy_item.value.sshd.split('@')[0] }}"
-        key : "{{ x_ssh_key_public | b64decode }}"
+        key : "{{ x_ssh_key_public.content  | b64decode }}"
         state: present
 
-    - name: gen_ssh_key {{ x_key }} | Set output variable
+    - name: gen_ssh_key {{ o_key }} | Set output variable
       ansible.builtin.set_fact:
         ssh_gen_key:
           changed : "{{ res_gen_key.changed }}"
-          public  : "{{ x_ssh_key_public | b64decode }}"
+          public  : "{{ x_ssh_key_public.content  | b64decode }}"
