@@ -1,0 +1,37 @@
+- name: Get userinfo
+  ansible.builtin.include_role:
+    name: x
+    tasks_from: userinfo
+  vars:
+    x_user: "{{ noip_user }}" 
+
+- name: Add user "{{ noip_user }}" to docker group
+  ansible.builtin.user:
+    name: "{{ noip_user }}"
+    append: true
+    groups: docker
+
+- name: Install noip
+  become: true
+  become_user: "{{ noip_user }}"
+  block:
+    - name: Create dir for store keys
+      ansible.builtin.file:
+        path: "{{ userinfo.homedir }}/.keys"
+        state: directory
+        mode: "0700"
+
+    - name: Copy noip.env
+      ansible.builtin.template:
+        src: noip.env.j2
+        dest: "{{ userinfo.homedir }}/.keys/noip.env"
+        mode: "0600"
+
+    - name: Run noip-duc container
+      community.docker.docker_container:
+        name: "noip"
+        image: "ghcr.io/noipcom/noip-duc:{{ noip_version }}"
+        state: started
+        restart_policy: always
+        env_file: "{{ userinfo.homedir }}/.keys/noip.env"
+

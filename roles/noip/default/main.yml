@@ -1,0 +1,6 @@
+noip_user   : "{{ common_user }}"  
+noip_version: latest
+
+noip_ddns_username: "{{ lookup('env', 'NOIP_USERNAME') }}"  # Укажите ваш DDNS ключ username
+noip_ddns_password: "{{ lookup('env', 'NOIP_PASSWORD') }}"  # Укажите ваш DDNS ключ password
+noip_ddns_hostname: "all.ddnskey.com"                       # Можно изменить на ваш хост
