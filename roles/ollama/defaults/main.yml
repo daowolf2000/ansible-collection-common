@@ -1,0 +1,2 @@
+ollama_force  : false         # Обновление / принудительная установка
+ollama_version: "{{ omit }}"  # Указание конкретной версии Ollama

@@ -1,0 +1,19 @@
+---
+- name: Check exists installed Ollama
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - /usr/local/bin/lib/ollama
+    - /usr/bin/lib/ollama
+    - /bin/lib/ollama
+  register: path_results
+
+- name: Install Ollama
+  when: path_results.results|selectattr('stat.exists')|list|length == 0 or ollama_force
+  ansible.builtin.shell:
+    set -o pipefail ; curl -fsSL https://ollama.com/install.sh | \
+    {% if ollama_version is defined %}OLLAMA_VERSION={{ ollama_version }}{% endif %} sh
+  args:
+    executable: /bin/bash
+  changed_when: true
+
