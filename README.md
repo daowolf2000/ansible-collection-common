@@ -35,6 +35,14 @@ dependencies:
 - Запуск Jupyter server с параметрами
 - Добавление пакетов в образ через создание custom образа
 
+### [noip](roles/noip/defaults/main.yml)
+
+- Docker-контейнер для автообновления DDNS на noip.com
+
+### [ollama](roles/ollama/defaults/main.yml)
+
+- Установка Ollama
+
 ### [openwebui](roles/openwebui/defaults/main.yml)
 
 - Установка openwebui с docker образа с помощью docker-compose
@@ -55,6 +63,17 @@ dependencies:
 - Поддерживается загрузка GPG-ключей и их dearmor
 - Поддерживаются метаданные для описания репозитория
 - Удобно использовать в других ролях через `include_role`
+
+### [ssh_proxy](roles/ssh_proxy/defaults/main.yml)
+
+- Настройка ssh-туннелей (прямого, обратного, socks)
+- Поддержка множества туннелей для одного хоста
+- Автоматическая генерация и распространение ключей
+- Создание systemd.service для управления состоянием туннеля
+
+### [sshd](roles/sshd/defaults/main.yml)
+
+- Настройка параметров демона SSH
 
 ### [terraform](roles/terraform/defaults/main.yml)
 
