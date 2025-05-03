@@ -31,3 +31,5 @@ users_default:
     # DOTFILES
     dotfiles_repo   : "{{ omit }}"        # Git репозиторий, где хранятся dotfiles
     dotfiles_ver    : "{{ omit }}"        # Версия dotfiles
+    # PIPX
+    # TODO: Install list of pip package use pipx
