@@ -17,8 +17,11 @@ users_default:
     home_move       : true                # Перемещение домашнего католога (если old_home != new_home)
     home_remove     : true                # Удаление домашнего каталога и почты (при state=absent)
     home_force      : true                # Принудительное удаление (при state=absent)
+    # Всегда передавай пароль хэшированным и с заданной солью (если не задать соль, то она будет генерироваться автоматически и 
+    # пароль будет каждый раз обновляться). Требует `pip install passlib` на localhost.
+    # Пример "{{ lookup('env', 'PASSWORD_DEFAULT') | password_hash('sha512','daowolf2000') }}"
     password        : "{{ omit }}"        # Пароль
-    password_update : always              # Если пароль не совпадает, то обновить пароль
+    password_update : always              # Если пароль не совпадает, то обновить пароль (или on_create - только при создании пользователя)
     shell           : /bin/bash           # Оболочка пользователя
     system          : false               # Системный пользователь?
     comment         : Create from Ansible # Описание пользователя
