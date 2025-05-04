@@ -17,7 +17,7 @@ users_default:
     home_move       : true                # Перемещение домашнего католога (если old_home != new_home)
     home_remove     : true                # Удаление домашнего каталога и почты (при state=absent)
     home_force      : true                # Принудительное удаление (при state=absent)
-    password        : '!'                 # Пароль (по умолчанию - вход по паролю запрещен)
+    password        : "{{ omit }}"        # Пароль
     password_update : always              # Если пароль не совпадает, то обновить пароль
     shell           : /bin/bash           # Оболочка пользователя
     system          : false               # Системный пользователь?
