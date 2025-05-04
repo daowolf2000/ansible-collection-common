@@ -27,7 +27,7 @@ ff02::2 ip6-allrouters
 # Hosts from inventory
 {% for item in groups['all'] %}
 {% set short_name = item.split('.') %}
-{% if short_name[0] not in seen_entries and item not in seen_entries %}
+{% if short_name[0] not in seen_entries and item not in seen_entries and  hostvars[item].ansible_host is defined  and hostvars[item].ansible_host != 'dhcp' %}
 {{ '%-16s' % hostvars[item].ansible_host }} {{ '%-32s' % item }} {{ short_name[0] }}
 {% set _ = seen_entries.update({item: true}) %}
 {% set _ = seen_entries.update({short_name[0]: true}) %}
