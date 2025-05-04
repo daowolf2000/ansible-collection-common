@@ -57,9 +57,8 @@
     path: /etc/sudoers.d/user_{{ users_item.key }}
     state: absent
 
-
 - name: Configure dotfiles
-  when: dotfiles_repo is defined
+  when: users_current.dotfiles_repo is defined
   block:
     - name: Clone dotfiles repo
       ansible.builtin.git:
