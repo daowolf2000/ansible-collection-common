@@ -3,16 +3,20 @@
   ansible.builtin.stat:
     path: "{{ item }}"
   loop:
-    - /usr/local/bin/lib/ollama
-    - /usr/bin/lib/ollama
-    - /bin/lib/ollama
+    - /usr/local/bin/ollama
+    - /usr/local/lib/ollama
+    - /usr/share/ollama
   register: path_results
 
 - name: Install Ollama
-  when: path_results.results|selectattr('stat.exists')|list|length == 0 or ollama_force
+  when: path_results.results | map(attribute='stat.exists') | select('equalto', true) | list | length == 0 or ollama_force
   ansible.builtin.shell:
-    set -o pipefail ; curl -fsSL https://ollama.com/install.sh | \
-    {% if ollama_version is defined %}OLLAMA_VERSION={{ ollama_version }}{% endif %} sh
+    cmd: >-
+      {% if ollama_version is defined and ollama_version != omit %}
+        set -o pipefail ; curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION="{{ ollama_version }}" sh
+      {% else %}
+        set -o pipefail ; curl -fsSL https://ollama.com/install.sh | sh
+      {% endif %}
   args:
     executable: /bin/bash
   changed_when: true
