@@ -1,17 +1,48 @@
 ---
-
 - name: Check Nvidia present
   ansible.builtin.include_role:
     name: daowolf2000.linux.x
     tasks_from: nvidia_present.yml
 
-- name: Install Open-WebUI
+- name: Get userinfo
   ansible.builtin.include_role:
     name: daowolf2000.linux.x
-    tasks_from: compose_app
+    tasks_from: userinfo.yml
   vars:
-    x_name: openwebui
     x_user: "{{ openwebui_user }}"
-    x_path: "{{ openwebui_path }}"
-    x_env:  "{{ openwebui_env }}"
-    x_content: "{{ lookup('template', 'openwebui.j2') }}"
+
+
+- name: Create folder
+  ansible.builtin.file:
+    name: "{{ openwebui_path }}/data"
+    state: directory
+    owner: "{{ userinfo.uid }}"
+    group: "{{ userinfo.gid }}"
+    mode: "0770"
+
+- name: Create docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ openwebui_path }}/docker-compose.yml"
+    owner   : "{{ userinfo.uid }}"
+    group   : "{{ userinfo.gid }}"
+    mode: "0644"
+  notify: Restart openwebui
+
+- name: Create default.env file
+  ansible.builtin.copy:
+    content : "{{ openwebui_env }}"
+    dest    : "{{ openwebui_path }}/default.env"
+    owner   : "{{ userinfo.uid }}"
+    group   : "{{ userinfo.gid }}"
+    mode    : "0660"
+  notify: Restart openwebui
+
+- name: Create service
+  ansible.builtin.template:
+    src: openwebui.service.j2
+    dest: "/etc/systemd/system/openwebui.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart openwebui

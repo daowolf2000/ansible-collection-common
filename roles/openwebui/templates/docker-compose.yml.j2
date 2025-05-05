@@ -1,0 +1,23 @@
+services:
+  openwebui:
+{% if nvidia_present %}
+    image: ghcr.io/open-webui/open-webui:cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+{% else %}
+    image: ghcr.io/open-webui/open-webui:main
+{% endif %}
+    ports:
+      - "{{ openwebui_port }}:8080"
+    volumes:
+      - ./data:/app/backend/data
+    env_file: 
+      - path: ./default.env
+        required: false
+      - path: ./override.env
+        required: false
