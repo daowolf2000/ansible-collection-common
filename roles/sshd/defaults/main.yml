@@ -1,5 +1,5 @@
 sshd_port             : 22
 sshd_addr_family      : 'inet'    # Тип протокола (IPv4 - inet, IPv6 - inet6, любой - any)
-sshd_permit_root_login: 'no'      # Разрешить вход по ssh для root
+sshd_permit_root_login: 'yes'     # Разрешить вход по ssh для root
 sshd_password_auth    : 'no'
 sshd_pubkey_auth      : 'yes'

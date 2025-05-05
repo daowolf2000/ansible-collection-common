@@ -80,6 +80,8 @@
     - name: Link files
       ansible.builtin.script:
         cmd: link_dotfiles.sh "{{ user_info.home }}/.dotfiles" "{{ user_info.home }}"
+      become: true
+      become_user: "{{ users_item.key }}"
       register: script_result
       changed_when: script_result.stdout_lines | select("match", "^LINK") | list | length > 0
 
