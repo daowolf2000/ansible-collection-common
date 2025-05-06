@@ -1,0 +1,8 @@
+---
+# handlers file for zbx-web
+- name: restart zbx-web
+  systemd:
+    name:   zbx-web.service
+    state:  restarted
+    daemon_reload:  yes
+    enabled:        yes

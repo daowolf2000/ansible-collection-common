@@ -1,0 +1,65 @@
+---
+# defaults file for zbx-main
+# См. также - group_vars/all в котором определены общие переменые для всех ролей
+
+zbx_srv_image : zabbix/zabbix-server-pgsql:latest
+zbx_srv_ulimits_nproc             : 65535 
+zbx_srv_ulimits_nofile_soft       : 20000
+zbx_srv_ulimits_nofile_hard       : 40000
+zbx_srv_stop_grace_period         : 30s
+
+zbx_srv_cap_add_net_raw   : false
+zbx_srv_sysctls:
+  - net.ipv4.ip_local_port_range=1024 64999
+  - net.ipv4.conf.all.accept_redirects=0
+  - net.ipv4.conf.all.secure_redirects=0
+  - net.ipv4.conf.all.send_redirects=0
+#   - net.ipv4.ping_group_range=0 1995
+
+zbx_srv_debuglevel    : 3
+
+zbx_srv_startpollers            : 5
+zbx_srv_ipmipoolers             : 0 
+zbx_srv_startpreprocessors      : 3
+zbx_srv_startconnectors         : 1
+zbx_srv_startpollersunreachable : 1
+zbx_srv_starttrappers           : 1
+zbx_srv_startpingers            : 1
+zbx_srv_startdiscoverers        : 1
+zbx_srv_startodbcpollers        : 0
+zbx_srv_starthttppollers        : 1
+zbx_srv_starthistorypollers     : 5
+zbx_srv_starttimers             : 1
+zbx_srv_startescalators         : 1
+zbx_srv_start_alerters          : 3
+zbx_srv_startlldprocessors      : 2
+zbx_srv_startjavapollers        : 0
+zbx_srv_startvmwarecollectors   : 0
+
+zbx_srv_cachesize               : 8M
+zbx_srv_cacheupdatefrequency    : 10
+zbx_srv_startdbsyncers          : 4
+zbx_srv_historycachesize        : 16M
+zbx_srv_historyindexcachesize   : 4M
+zbx_srv_historystoragedateindex : 0
+zbx_srv_trendcachesize          : 4M
+zbx_srv_trendfunctioncachesize  : 4M
+zbx_srv_valuecachesize          : 8M
+zbx_srv_timeout                 : 10
+zbx_srv_trappertimeout          : 300
+zbx_srv_unreachableperiod       : 45
+zbx_srv_unavailabledelay        : 60
+zbx_srv_unreachabledelay        : 15
+
+zbx_srv_startproxypollers       : 1
+zbx_srv_proxyconfigfrequency    : 10
+zbx_srv_proxydatafrequency      : 1
+
+
+
+
+zbx_db_image  : timescale/timescaledb:2.15.0-pg16
+zbx_db_shm_size         : 1g      # Разделяемая память
+zbx_db_max_connections  : 1000    # Параметр БД max_connections
+zbx_db_stop_grace_period: 1m
+

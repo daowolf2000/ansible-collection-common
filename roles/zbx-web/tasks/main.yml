@@ -1,0 +1,106 @@
+---
+# tasks file for zbx-web
+
+- name: Create folders structure for zbx-web
+  file:
+    path:   "{{ zbx_path }}/{{ item }}"
+    owner:  "{{ zbx_user }}"
+    group:  "{{ zbx_group }}"
+    state:  directory
+    mode:   0770
+  loop:
+    - web/modules
+    - web/ssl
+    - web/info
+
+- import_tasks: tasks/docker-image-load.yml
+  vars: 
+    img:  "{{ zbx_web_image }}"
+    file: zabbix-web-nginx-pgsql.tgz
+
+- name: Copy docker-compose file and cfg
+  template:
+    src:    "{{ item }}.j2"
+    dest:   "{{ zbx_path }}/{{ item }}"
+    owner:  "{{ zbx_user }}"
+    group:  "{{ zbx_group }}"
+    mode:   0660
+  loop:
+    - web/docker-compose.yml
+    - web/env_db
+    - web/env_web
+  notify: restart zbx-web
+
+- name: Copy systemd for zbx-web
+  template:
+    src:    etc/systemd/system/zbx-web.service
+    dest:   /etc/systemd/system/zbx-web.service
+    owner:  root
+    group:  root
+    mode:   0644
+  notify: restart zbx-web
+
+- name: Config ssl
+  block:
+  - name: Install python-openssl
+    apt:
+      package:
+        - python-openssl
+
+  - name: Gen dhparam
+    openssl_dhparam:
+      path:   "{{ zbx_path }}/web/ssl/dhparam.pem"
+      size:   "{{ zbx_web_ssl_dhparam_size }}"
+      state:  present
+      owner:  "{{ zbx_user }}"
+      group:  "{{ zbx_group }}"
+      mode:   0660
+  
+  - name: Check ssl.key exist
+    openssl_privatekey:
+      path: "{{ zbx_path }}/web/ssl/ssl.key"
+      owner: "{{ zbx_user }}"
+      group:  "{{ zbx_group }}"
+      mode:   0600
+      size:   "{{ zbx_web_ssl_key_size }}"
+      state:  present
+      type:   RSA
+  
+  - name: Gen ssl.csr
+    openssl_csr:
+      path: "{{ zbx_path }}/web/ssl/ssl.csr"
+      privatekey_path: "{{ zbx_path }}/web/ssl/ssl.key"
+      common_name:  "{{ ansible_facts.hostname  }}"
+      country_name: RU
+      organization_name:  "{{ zbx_web_ssl_org }}"
+      organizational_unit_name: "{{ zbx_web_ssl_ou }}"
+      email_address: "{{ zbx_web_ssl_email }}"
+      subject_alt_name:
+        - "IP:{{ zbx_web_ip }}"
+        - "DNS:{{ ansible_facts.hostname }}"
+        - "DNS:{{ ansible_facts.fqdn }}"
+      owner: "{{ zbx_user }}"
+      group: "{{ zbx_group }}"
+
+  - name: Check ssl.crt exist
+    openssl_certificate:
+      path: "{{ zbx_path }}/web/ssl/ssl.crt"
+      provider: assertonly
+      subject: 
+        CN: "{{ ansible_facts.hostname }}"
+      privatekey_path: "{{ zbx_path }}/web/ssl/ssl.key"
+      subject_alt_name:
+        - "IP:{{ zbx_web_ip }}"
+        - "DNS:{{ ansible_facts.hostname }}"
+        - "DNS:{{ ansible_facts.fqdn }}"
+    ignore_errors: true
+    register: ssl_crt
+    
+  - fail: 
+      msg: 'HTTPS не может быть включен, т.к. SSL сертификат настроен некорректно. До исправления ошибки используйте zbx_web_https=false'
+    when: ssl_crt.failed
+    
+    
+
+  when: zbx_web_https
+  tags: ssl

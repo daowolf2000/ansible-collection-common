@@ -1,0 +1,24 @@
+---
+# См. также - group_vars/all в котором определены общие переменые для всех ролей
+
+zbx_web_name  : КС РСМ
+zbx_web_image : zabbix/zabbix-web-nginx-pgsql:latest
+zbx_web_stop_grace_period : 10s
+
+zbx_web_ssl_dhparam_size  : 2048                # Длина ключа Деффи-Хелмана
+zbx_web_ssl_key_size      : 4096                # Длина ключа
+
+zbx_web_maxexecutiontime            : 600
+zbx_web_memorylimit                 : 128M
+zbx_web_postmaxsize                 : 16M
+zbx_web_uploadmaxfilesize           : 2M
+zbx_web_maxinputtime                : 300
+
+zbx_web_php_tz                      : Asia/Vladisvostok
+
+zbx_web_php_fpm_pm                  : dynamic
+zbx_web_php_fpm_pm_max_children     : 50
+zbx_web_php_fpm_pm_start_servers    : 5
+zbx_web_php_fpm_pm_min_spare_servers: 5
+zbx_web_php_fpm_pm_max_spare_servers: 35
+zbx_web_php_fpm_pm_max_requests     : 0

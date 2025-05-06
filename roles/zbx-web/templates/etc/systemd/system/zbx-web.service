@@ -1,0 +1,20 @@
+[Unit]
+Description=Zabbix web server
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User={{ zbx_user }}
+Group={{ zbx_group }}
+WorkingDirectory={{ zbx_path }}/web
+# Shutdown container (if running) when unit is started
+ExecStartPre=/usr/bin/bash -lc "docker-compose -f docker-compose.yml down"
+# Start container when unit is started
+ExecStart=/usr/bin/bash -lc "docker-compose -f docker-compose.yml up"
+# Stop container when unit is stopped
+ExecStop=/usr/bin/bash -lc "docker-compose -f docker-compose.yml down"
+
+[Install]
+WantedBy=multi-user.target

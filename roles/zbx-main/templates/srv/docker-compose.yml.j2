@@ -1,0 +1,89 @@
+version: '3.5'
+
+services:
+
+  zbx_db:
+    container_name: zbx_db
+    image:  {{ zbx_db_image }}
+    restart: {{ docker_restart_policy }}
+    command: -c max_connections={{ zbx_db_max_connections }}
+    shm_size: {{ zbx_db_shm_size }}  # Разделяемая память, по умолчанию 64MB. 
+    ports:
+      - "{{ zbx_db_port }}:5432/tcp"
+    volumes:
+      - ../db/data:/var/lib/postgresql/data:rw
+    env_file:
+      - ./env_db
+    stop_grace_period: {{ zbx_db_stop_grace_period }}
+    networks:
+      front:
+      back:
+        aliases:
+          - zbx_db
+
+
+  zbx_srv:
+    container_name: zbx_srv
+    image:  {{ zbx_srv_image }}
+    restart: {{ docker_restart_policy }}
+    ports:
+      - "{{ zbx_srv_port }}:10051"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./enc:/var/lib/zabbix/enc:ro
+      - ./ssh_keys:/var/lib/zabbix/ssh_keys:ro
+      - ./alertscripts:/usr/lib/zabbix/alertscripts:ro
+      - ./externalscripts:/usr/lib/zabbix/externalscripts:ro
+      - ./dbscripts:/var/lib/zabbix/dbscripts:ro
+      - ./modules:/var/lib/zabbix/modules:ro
+      - ./export:/var/lib/zabbix/export:rw
+      # - ./mnt/alert:/mnt/alert:rw
+    tmpfs: /tmp             # Это по идее должно ускорять работу образа
+    ulimits:
+      nproc:  {{ zbx_srv_ulimits_nproc }}
+      nofile:
+        soft: {{ zbx_srv_ulimits_nofile_soft }}
+        hard: {{ zbx_srv_ulimits_nofile_hard }}
+    env_file:
+      - ./env_db
+      - ./env_srv
+    depends_on:
+      - zbx_db
+    networks:
+      front:
+      back:
+        aliases:
+          - zbx_srv
+    stop_grace_period: {{ zbx_srv_stop_grace_period }}
+{% if zbx_srv_cap_add_net_raw %}
+    cap_add:
+      - "NET_RAW"
+{% endif %}
+{% if zbx_srv_sysctls  is defined  %}
+    sysctls:
+{% for sysctl in zbx_srv_sysctls|sort() %}
+      - {{ sysctl }}
+{% endfor %}
+{% endif %}
+{% if network_dns_ip  is defined  %}
+    dns:
+{% for dns in network_dns_ip|sort() %}
+      - {{ dns }}
+{% endfor %}
+{% endif %}
+{% if network_domain_full  is defined  %}
+    dns_search: {{ network_domain_full }}
+{% endif %}
+
+networks:
+  front:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+      
+  back:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    internal: true
