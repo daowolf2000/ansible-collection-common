@@ -10,6 +10,7 @@
           password: "!"
           shell: /bin/false
           home: "{{ ollama_homedir }}"
+  tags: [ install, users ]
 
 - name: Set owner for ollama home
   ansible.builtin.file:
@@ -18,6 +19,7 @@
     owner: "{{ ollama_user_uid }}"
     group: "{{ ollama_user_gid }}"
     recurse: true
+  tags: [ install, users ]
 
 - name: Check exists installed Ollama
   ansible.builtin.stat:
@@ -27,6 +29,7 @@
     - /usr/local/lib/ollama
     - /usr/share/ollama
   register: path_results
+  tags: [ install, update ]
 
 - name: Install Ollama
   when: path_results.results | map(attribute='stat.exists') | select('equalto', true) | list | length == 0 or ollama_force
@@ -40,13 +43,14 @@
   args:
     executable: /bin/bash
   changed_when: true
-
-
+  tags: [ install, update ]
+  
 - name: Create directory for override.conf
   ansible.builtin.file:
     path: /etc/systemd/system/ollama.service.d
     state: directory
     mode: '0755'
+  tags: [ install, config ]
 
 - name: Configure override.conf for ollama.service (with environment)
   ansible.builtin.copy:
@@ -60,4 +64,5 @@
       Environment="{{ line }}"
       {% endfor %}
   notify: Restart ollama
+  tags: [ install, config ]
 
