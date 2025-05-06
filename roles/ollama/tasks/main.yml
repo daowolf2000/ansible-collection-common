@@ -56,16 +56,8 @@
     group: root
     content: |
       [Service]
-      {% for line in ollama_env_vars %}
-      {{ line }}
+      {% for line in ollama_env %}
+      Environment="{{ line }}"
       {% endfor %}
-  vars:
-    ollama_env_vars: >-
-      {{
-        ollama_env.split('\n')
-        | select('match', '^[^#].*=.*$')
-        | map('regex_replace', '^(.*)$', 'Environment="\1"')
-        | list
-      }}
   notify: Restart ollama
 
