@@ -1,2 +1,26 @@
 ollama_force  : false         # Обновление / принудительная установка
 ollama_version: "{{ omit }}"  # Указание конкретной версии Ollama
+ollama_homedir: /opt/ollama
+ollama_user_uid: 3000
+ollama_user_gid: 3000
+
+ollama_env: |
+    # Взято с https://hostkey.ru/documentation/technical/gpu/ollama/#переменные-окружения
+    OLLAMA_HOST=0.0.0.0:11434
+    # OLLAMA_DEBUG	Выводить дополнительную информацию о отладке (например, OLLAMA_DEBUG=1)
+    # OLLAMA_KEEP_ALIVE	Время, в течение которого модели остаются загруженными в памяти (по умолчанию 5m)
+    # OLLAMA_MAX_LOADED_MODELS	Максимальное количество загруженных моделей (по умолчанию 1)
+    # OLLAMA_MAX_QUEUE	Длина очереди, определяет число запросов, которые могут находиться в ней и ждать своей очереди (512 по умолчанию)
+    # OLLAMA_MODELS	Путь к каталогу с моделями
+    # OLLAMA_NUM_PARALLEL	Максимальное количество параллельных запросов (по умолчанию 1)
+    # OLLAMA_NOPRUNE	Не обрезать BLOB моделей при запуске
+    # OLLAMA_ORIGINS	Список разрешенных Origins, через запятую
+    # OLLAMA_TMPDIR	Директория для временных файлов
+    # OLLAMA_FLASH_ATTENTION	При установке в 1 улучшает скорость генерации токенов на Mac с Apple Silicon и графических картах NVIDIA
+    # OLLAMA_LLM_LIBRARY	Задание определенной библиотеки LLM, чтобы обойти автоматическое обнаружение (динамические библиотеки LLM [rocm_v6 cpu cpu_avx cpu_avx2 cuda_v11 rocm_v5])
+    # OLLAMA_MAX_VRAM	Максимальный объем используемой VRAM (OLLAMA_MAX_VRAM=<bytes>)
+    # OLLAMA_NOHISTORY	При установке в 1 отключает историю во время выполнения Ollama
+    # OLLAMA_SCHED_SPREAD	Запускать модели на всех доступных видеоадаптерах (по умолчанию 0)
+    # OLLAMA_MULTIUSER_CACHE	Оптимизировать кэширование промта для сценариев с множеством пользователей
+    # OLLAMA_CONTEXT_LENGTH"	Задать размер контекста ( по умолчанию равен 2048)
+    # OLLAMA_NEW_ENGINE	Включить использование нового движка вместо llama.cpp

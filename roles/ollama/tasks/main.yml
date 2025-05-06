@@ -41,3 +41,31 @@
     executable: /bin/bash
   changed_when: true
 
+
+- name: Create directory for override.conf
+  ansible.builtin.file:
+    path: /etc/systemd/system/ollama.service.d
+    state: directory
+    mode: '0755'
+
+- name: Configure override.conf for ollama.service (with environment)
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/ollama.service.d/override.conf
+    mode: '0644'
+    owner: root
+    group: root
+    content: |
+      [Service]
+      {% for line in ollama_env_vars %}
+      {{ line }}
+      {% endfor %}
+  vars:
+    ollama_env_vars: >-
+      {{
+        ollama_env.split('\n')
+        | select('match', '^[^#].*=.*$')
+        | map('regex_replace', '^(.*)$', 'Environment="\1"')
+        | list
+      }}
+  notify: Restart ollama
+
