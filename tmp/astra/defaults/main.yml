@@ -1,0 +1,107 @@
+---
+# См. также - group_vars/all в котором определены общие переменые для всех ролей
+
+package:
+  - dialog
+  - open-vm-tools
+  - cloud-utils
+  - htop
+  - mc
+  - curl
+  - jq
+
+zbx_agent_debug         : 3
+zbx_agent_port          : 10050
+zbx_agent_server        : "{{ zbx_srv_ip | default('127.0.0.1') }}"
+zbx_agent_server_active : "{{ zbx_agent_server }}"
+zbx_agent_hostname      : system.hostname[shorthost,lower]
+
+sec_level : 2             # Переключение на уровень безопасности ( 0 - Орел, 1 - Воронеж, 2 - Смоленск)
+sec_masked_powerstate :   # Отключение перехода в спящий режими и режим гибернации
+  - { name: sleep.target,        masked: true }
+  - { name: suspend.target,      masked: true }
+  - { name: hibernate.target,    masked: true }
+  - { name: hybrid-sleep.target, masked: true }
+
+sec_umask : !!str 022       # Значение umask 
+
+sec_grub_nobootmenu_control: 1   # Запрет вывода меню GRUB
+sec_grub_timeout             : 1      # Timeout для GRUB
+sec_grub_recovery            : false  # Генерировать пункт меню GRUB для режима восстановления  
+sec_grub_extra_option        :        # Дополнительные опции запуска ядра     
+
+sec_policy_digsig_control    : 0   # Включение ЗПС
+sec_policy_mac_control       : 0   # Включение мандатного управления доступом
+sec_policy_mic_control       : 1   # Настройка МКЦ
+sec_policy_set_fs_ilev       : 1   # Включить защиту файловой системы
+sec_policy_ilev1_control     : 1   # Запуск сервисов на изолированном уровне
+sec_policy_docker_isolation  : 1   # Запуск Docker на изолированном уровне МКЦ
+sec_policy_bash_lock         : 0   # Блокировка интерпретатора Bash для пользователей
+sec_policy_interpreters_lock : 1   # Блокировка интерпретаторов кроме Bash для пользователей
+sec_policy_sudo_control      : 1   # Ввод пароля для sudo
+sec_policy_console_lock      : 0   # Блокировку консоли для пользователей, не входящих в группу astra-console
+sec_policy_swapwiper_control : 1   # Очистка разделов подкачки
+sec_policy_secdel_control    : 0   # Гарантированное удаление файлов
+sec_policy_overlay           : 0   # Режим работы файловой системы ОС – «Только чтение»
+sec_policy_sysrq_lock        : 1   # Блокировка клавиш SysRq для всех пользователей, включая администраторов
+# sec_policy_mount_lock        : 1   # Запрет монтирования носителей непривилегированным пользователям
+sec_policy_ufw_control       : 0   # Межсетевой экран
+sec_policy_commands_lock     : 1   # Блокировка системных команд для пользователей
+sec_policy_shutdown_lock     : 1   # Блокировка выключения/перезагрузки ПК для пользователей
+sec_policy_ulimits_control   : 1   # Системные ограничения ulimits
+sec_policy_sumac_lock        : 0   # Блокировка одновременной работы с разными уровнями в пределах одной сессии
+sec_policy_ptrace_lock       : 1   # Блокировка трассировки ptrace для всех пользователей, включая администраторов
+sec_policy_nochmodx_lock     : 0   # Запрет установки бита исполнения для всех пользователей, включая администраторов
+
+sec_auth_login_local      : admin     # Кому разрешено заходить локально (all, admin, no)
+sec_auth_per_user         : false     # Индивидуальные настройки
+sec_auth_no_reset         : true      # Не сбрасывать счетчик        
+sec_auth_magic_root       : false     # Не использовать счетчик для пользователя с uid=0
+sec_auth_deny_count       : 10        # Неуспешных попыток
+sec_auth_lock_time        : 3600      # Период блокировки
+sec_auth_unlock_time      : 0         # Период разблокировки
+
+sec_pass_gecoscheck       : true      # Включить проверку GEKOS
+sec_pass_enforce_for_root : true      # Применять для root
+sec_pass_minlen           : 16        # Минимальная длина пароля
+sec_pass_lcredit          : -1        # Минимальное количество строчных букв
+sec_pass_ucredit          : -1        # Минимальное количество заглавных букв
+sec_pass_dcredit          : -1        # Минимальное количество цифр
+sec_pass_ocredit          : -1        # Минимальное количество других знаков
+sec_pass_remember         : 5         # Количество паролей, которые нужно запомнить
+sec_pass_min_days         : 1         # Минимальное количестов дней между сменами пароля
+sec_pass_max_days         : 365       # Максимальное количестов дней между сменами пароля
+sec_pass_warn_age         : 30        # Число дней выдачи предупреждения до смены пароля
+sec_pass_inactive         : 3         # Число дней неактивности после устаревания пароля до блокировки учетной записи ( -1 для отключения)
+
+sec_fstek_init_on_alloc     : true  # Инициализировать динамическую ядерную память нулем при ее выделении
+sec_fstek_slab_nomerge      : true  # Запретить слияние кэшей ядерного аллокатора
+sec_fstek_iommu             : true  # Инициализация механизма IOMMU
+sec_fstek_randomize_kstack  : true  # Рандомизировать расположение ядерного стека
+sec_fstek_mitigations       : true  # Включить средства защиты от аппаратных уязвимостей центрального процессора (для платформы x86) 
+sec_fstek_vsyscall          : true  # Отключить устаревший интерфейс vsyscall 
+sec_fstek_debugfs           : true  # Отключить монтирование виртуальной файловой системы debugfs 
+sec_fstek_tsx_off           : true  # Отключить технологию Transactional Synchronization Extensions (TSX) 
+
+sec_sysctl_dmesg_restrict             : 1     # Ограничение доступа к журналу ядра
+sec_sysctl_kptr_restrict              : 2     # Замена ядерных адресов в /proc и других интерфейсах на 0
+sec_sysctl_bpf_jit_harden             : 2     # Включение защиты подсистемы eBPF JIT ядра Linux
+sec_sysctl_perf_event_paranoid        : 3     # Ограничение доступа к событиям производительности 
+sec_sysctl_kexec_load_disabled        : 1     # Отключить системный вызов kexec_load
+sec_sysctl_max_user_namespaces        : 0     # Ограничить использование user namespaces
+sec_sysctl_unprivileged_bpf_disabled  : 1     # Запретить системный вызов bpf для непривилегированных пользователей
+sec_sysctl_unprivileged_userfaultfd   : 0     # Запретить системный вызов userfaultfd для непривилегированных пользователей 
+sec_sysctl_ldisc_autoload             : 0     # Запретить автоматическую загрузку модулей ядра, отвечающих за поддержку дисциплины линии терминала
+sec_sysctl_mmap_min_addr              : 4096  # Определение минимального виртуального адреса, который процессу разрешено использовать для mmap 
+sec_sysctl_randomize_va_space         : 2     # Реализовать рандомизацию адресного пространства, которая защищает от атак на переполнение буфера
+sec_sysctl_ptrace_scope               : 3     # Запретить подключение к другим процессам с помощью ptrace
+sec_sysctl_protected_symlinks         : 1     # Ограничить небезопасные варианты прохода по символическим ссылкам (symlinks) 
+sec_sysctl_protected_hardlinks        : 1     # Ограничить небезопасные варианты работы с жесткими ссылками (hardlinks) 
+sec_sysctl_protected_fifos            : 2     # Включить защиту от непреднамеренной записи в FIFO-объект
+sec_sysctl_protected_regular          : 2     # Включить защиту от непреднамеренной записи в файл 
+sec_sysctl_suid_dumpable              : 0     # Запретить создание core dump для некоторых исполняемых файлов
+
+sec_ssh_permitrootlogin     : false   # Разрешить вход root по ssh (yes/no)
+
+sec_afick_state             : true    # Включить расчет контрольных сумм
+sec_no_double_login         : true    # Включить блокировку множественного входа

@@ -1,0 +1,13 @@
+- name: Config GRUB menu
+  template: 
+    src:    etc/default/grub.d/custom.cfg.j2
+    dest:   /etc/default/grub.d/custom.cfg
+    owner:  root
+    group:  root
+    mode:   0644
+  notify: make grub
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-nobootmenu-control  
+    state: "{{ sec_grub_nobootmenu_control }}"

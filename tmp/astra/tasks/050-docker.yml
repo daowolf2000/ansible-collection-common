@@ -1,0 +1,6 @@
+- name: Install Docker and Docker-compose
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present

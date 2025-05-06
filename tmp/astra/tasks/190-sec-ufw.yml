@@ -1,0 +1,4 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-ufw-control 
+    state: "{{ sec_policy_ufw_control }}"

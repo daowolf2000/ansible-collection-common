@@ -1,0 +1,12 @@
+# here are the per-package modules (the "Primary" block)
+{% if sec_afick_state %}
+auth    [success=1 default=ignore]      pam_listfile.so onerr=succeed item=group sense=allow file=/etc/afick/unblocked_groups.list 
+auth    requisite                       pam_listfile.so onerr=succeed item=group sense=deny file=/etc/afick/blocked_groups.list 
+{% endif %}
+auth	[success=ignore default=2]      pam_localuser.so 
+auth	[success=1 default=ignore]      pam_succeed_if.so quiet user ingroup astra-admin
+auth	[success=ignore default=die]	pam_tally.so {{ 'per_user' if sec_auth_per_user else '' }} {{ 'no_reset' if sec_auth_no_reset else ''  }} {{ 'magic_root' if sec_auth_magic_root else ''  }} {{ 'deny=' ~ sec_auth_deny_count if sec_auth_deny_count > 0 else '' }} {{ 'lock_time=' ~ sec_auth_lock_time if sec_auth_lock_time > 0 else '' }} {{ 'unlock_time=' ~ sec_auth_unlock_time if sec_auth_unlock_time > 0 else '' }}
+auth	[success=1 default=ignore]      pam_unix.so nullok_secure try_first_pass
+
+auth	requisite			pam_deny.so
+auth	required			pam_permit.so

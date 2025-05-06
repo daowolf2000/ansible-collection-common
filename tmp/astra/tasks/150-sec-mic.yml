@@ -1,0 +1,31 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-mic-control 
+    state: "{{ sec_policy_mic_control }}"
+    notify: reboot server
+
+- name: Copy file /etc/parsec/fs-ilev.conf
+  copy:
+    src:    etc/parsec/fs-ilev.conf
+    dest:   /etc/parsec/fs-ilev.conf
+    owner:  root
+    group:  root
+    mode:   0644
+  when: sec_policy_set_fs_ilev == 1
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: set-fs-ilev
+    state: "{{ sec_policy_set_fs_ilev }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-ilev1-control
+    state: "{{ sec_policy_ilev1_control }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-docker-isolation
+    state: "{{ sec_policy_docker_isolation }}"
+    notify: restart docker
+

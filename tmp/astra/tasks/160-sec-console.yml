@@ -1,0 +1,29 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-bash-lock
+    state: "{{ sec_policy_bash_lock }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-interpreters-lock
+    state: "{{ sec_policy_interpreters_lock }}"
+    notify: disable nochmodx
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-sudo-control
+    state: "{{ sec_policy_sudo_control }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-console-lock
+    state: "{{ sec_policy_console_lock }}"
+
+- name: Disable unused interpreters (in /etc/shells)
+  copy:
+    src:    etc/shells
+    dest:   /etc/shells
+    owner:  root
+    group:  root
+    mode:   0644
+  when: sec_policy_interpreters_lock == 1

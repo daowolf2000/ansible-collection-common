@@ -1,0 +1,56 @@
+---
+# tasks file for astra-basic
+
+
+- import_tasks: 010-network.yml
+  tags: network
+
+# TODO: Настройка репозитория
+- import_tasks: 020-repo.yml
+  when: false
+  tags: repo
+
+- import_tasks: 030-package.yml
+  tags: package
+
+- import_tasks: 040-zabbix-agent.yml
+  tags: zabbix-agent
+
+- import_tasks: 050-docker.yml
+  tags: docker
+
+- import_tasks: 100-sec-modeswitch.yml
+  tags: security
+
+- import_tasks: 110-sec-basic.yml
+  tags: [ sec, basic ]
+- import_tasks: 120-sec-audit.yml
+  tags: [ sec, audit ]
+- import_tasks: 130-sec-digsig.yml
+  tags: [ sec, digsig ]
+- import_tasks: 140-sec-mac.yml
+  tags: [ sec, mac ]
+- import_tasks: 150-sec-mic.yml
+  tags: [ sec, mic ]
+- import_tasks: 160-sec-console.yml
+  tags: [ sec, console ]
+- import_tasks: 170-sec-wiper.yml
+  tags: [ sec, wiper ]
+- import_tasks: 180-sec-system.yml
+  tags: [ sec, system ]
+- import_tasks: 190-sec-ufw.yml
+  tags: [ sec, ufw ]
+- import_tasks: 200-sec-auth.yml
+  tags: [ sec, auth ]
+- import_tasks: 210-sec-dev.yml
+  tags: [ sec, dev ]
+- import_tasks: 220-sec-grub.yml
+  tags: [ sec, grub ]
+- import_tasks: 230-sec-fstek.yml
+  tags: [ sec, sshd ]
+- import_tasks: 240-sec-sshd.yml
+  tags: [ sec, sshd ]
+- import_tasks: 250-sec-afick.yml
+  tags: [ sec, afick ]
+- import_tasks: 260-sec-no_double_login.yml
+  tags: [ sec, no_double_login ]

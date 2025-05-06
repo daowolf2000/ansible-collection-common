@@ -1,0 +1,37 @@
+#!/bin/bash
+# Извлекаем из файла /var/log/afick/afick.log информацию о файлах непрошедших проверку КЦ
+# и отправляем информацию в zabbix
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+# расположение файла логов zabbix
+ZABBIX_PORT="10051"
+# расположение файла логов afick
+LOG_FILE="/var/log/afick/afick.log"
+# количество файлов, не прошедших проверку
+AFICK_COUNT="0"
+# список файлов, не прошедших проверку
+AFICK_FILES=""
+# имя сервера zabbix
+ZABBIX_SERVER=localhost
+# Парсим лог-файл, считаем количество файлов, не прошедших КЦ и их полные имена
+    while IFS= read -r LINE
+    do
+		if [[ "$LINE" == *"changed file : "* ]] || [[ "$LINE" == *"changed directory : "* ]]; then
+			let "AFICK_COUNT++"
+			NUM=$(expr index "$LINE" "/")
+			let "NUM--"
+			STRING=$(echo ${LINE: NUM})
+			AFICK_FILES+="$STRING "
+		fi
+		if [[ "$LINE" == *"# detailed changes"* ]]; then
+			break
+		fi
+    done < $LOG_FILE
+# Отправка данных на сервер zabbix
+	# Отправляем количество файлов, если 0 - то снимается "проблема" в zabbix
+	zabbix_sender -z $ZABBIX_SERVER -p $ZABBIX_PORT -s "$HOSTNAME" -k afick_block_count -o "$AFICK_COUNT"
+	if [[ "$LINE" =~ [A-Z,a-z,0-9] ]]; then	
+	# Если количество файлов >0, отправляется список файлов, у которых нарушена целостность
+		zabbix_sender -z $ZABBIX_SERVER -p $ZABBIX_PORT -s "$HOSTNAME" -k afick_block_files -o "Нарушена целостность файлов: $AFICK_FILES"
+	fi
+exit 0	

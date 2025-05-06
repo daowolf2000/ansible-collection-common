@@ -1,0 +1,42 @@
+---
+- name: reboot server
+  reboot: 
+    reboot_timeout: 60
+
+- name: restart network
+  service: 
+    name:  networking 
+    state: restarted 
+
+- name: restart docker
+  systemd:
+    name:  docker
+    state: restarted
+
+- name: restart zabbix-agent
+  service: 
+    name:  zabbix-agent
+    state: restarted
+
+- name: make grub
+  shell: grub-mkconfig && update-grub 
+
+- name: update audit
+  systemd: 
+    name: auditd.service 
+    state: restarted
+
+- name: afick check
+  command: /etc/afick/afick_check.sh
+
+- name: restart sshd
+  service: 
+    name:  sshd
+    state: restarted
+
+- name: noop
+  debug: msg=""
+
+- name: disable nochmodx
+  shell: astra-nochmodx-lock status &>/dev/null && astra-nochmodx-lock disable || echo skip
+  failed_when: result.stderr != ""

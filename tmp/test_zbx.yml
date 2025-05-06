@@ -1,0 +1,32 @@
+---
+- name: Using Zabbix collection to manage Zabbix Server's elements with username/password
+  hosts: s05zbx-main
+  become: true
+  tasks:
+  
+  - name: Check install zabbix_api library
+    shell: python -c "import zabbix_api" &>/dev/null
+    register: check
+    changed_when: false
+    failed_when: false
+
+  - name: Install python zabbix-api
+    block:
+    - name: Copy distr zabbix api
+      unarchive:
+        src:  roles/zbx-main/files/zabbix-api-0.5.6.tar.gz
+        dest: /opt/zbx/images
+        extra_opts: [--strip-components=1]
+        remote_src: no 
+    - name: Install python-setuptools
+      apt:
+        package:
+          - python-setuptools
+    - name: Install python library zabbix_api
+      command: python setup.py install
+      args:
+        chdir: /opt/zbx/images
+      register: res
+      changed_when: res.rc == 0
+    when: check.rc != 0
+

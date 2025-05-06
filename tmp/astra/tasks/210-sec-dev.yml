@@ -1,0 +1,15 @@
+- name: Delete users from floppy and cdrom group
+  lineinfile:
+    path: /etc/group
+    line: '{{ item }}:x:\1:'
+    backrefs: true
+    regexp: "^{{ item }}:x:([0-9]*):.*"
+  loop:
+    - cdrom
+    - floppy
+
+- name: Comment /dev/sr in fstab
+  replace:
+    path: /etc/fstab
+    replace: '# \1'
+    regexp: '^[^#\n]*(/dev/sr[0-9]* .*)$'

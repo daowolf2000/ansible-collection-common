@@ -1,0 +1,14 @@
+# Настройка ЗПС
+- name: Config digsig 
+  copy:
+    src:  etc/digsig/digsig_initramfs.conf
+    dest: /etc/digsig/digsig_initramfs.conf
+    owner: root
+    group: root
+    mode:  0644
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-digsig-control 
+    state: "{{ sec_policy_digsig_control }}"
+    notify: reboot server

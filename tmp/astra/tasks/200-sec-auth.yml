@@ -1,0 +1,14 @@
+- name: Copy settings file
+  template: 
+    src:    "{{ item }}.j2" 
+    dest:   "/{{ item }}"
+    owner:  root
+    group:  root 
+    mode:   0644
+  loop:
+  - etc/pam.d/common-auth
+  - etc/pam.d/common-password
+  - etc/parsec/parsec.conf
+  - etc/login.defs
+  - etc/default/useradd
+

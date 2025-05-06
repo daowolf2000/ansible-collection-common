@@ -1,0 +1,5 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-mac-control 
+    state: "{{ sec_policy_mac_control }}"
+    notify: reboot server

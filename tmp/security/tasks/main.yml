@@ -1,0 +1,9 @@
+---
+
+- name: Deny double logon ({{ security_deny_double_logon }})
+  ansible.builtin.import_tasks: deny_double_logon.yml
+  when: security_deny_double_logon
+
+- name: Apply fstek security
+  ansible.builtin.import_tasks: fstek.yml
+  when: security_fstek

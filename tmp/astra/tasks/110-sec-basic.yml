@@ -1,0 +1,29 @@
+---
+# tasks file for astra-sec-basic
+- name: Config powerstate target ("{{ sec_masked_powerstate | join('') }}")
+  systemd: 
+    name: "{{ item.name }}"
+    masked: "{{ item.masked }}" 
+  loop: "{{ sec_masked_powerstate }}" 
+  tags: powerstate
+
+- name: Set umask="{{ sec_umask }}"
+  block: 
+  - name: Set umask="{{ sec_umask }}" in /etc/skel/.profile
+    lineinfile:
+      path: /etc/skel/.profile
+      line: "umask {{ sec_umask }}"
+      regexp: '^#*.*umask'
+  - name: Get info about user from passwd
+    getent: 
+        database: passwd
+        split: ":"
+  - name: Set umask="{{ sec_umask }}" in users_home/.profile
+    lineinfile:
+      path: "{{ item.value[4] }}/.profile"
+      line: "umask {{ sec_umask }}"
+      regexp: '^#*.*umask'
+    loop: "{{ getent_passwd | dict2items | selectattr('value.5', 'equalto','/bin/bash') | list }}"
+    loop_control:
+      label: "{{ item.value[4] }}/.profile"
+  tags: umask

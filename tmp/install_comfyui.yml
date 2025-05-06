@@ -1,0 +1,64 @@
+# https://habr.com/ru/companies/hostkey/articles/884664/
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name:
+          - python3-pip
+          - git
+          - libgl1-mesa-glx
+          - libglib2.0-0
+          - cmake
+          - build-essential
+        state: present
+
+    - name: Clone ComfyUI repository
+      ansible.builtin.git:
+        repo: https://github.com/comfyanonymous/ComfyUI.git
+        dest: "{{ _path }}"
+        version: main
+
+    - name: Install Python packages
+      ansible.builtin.pip:
+        requirements: "{{ _path }}/requirements.txt"
+        virtualenv: "{{ _path }}/venv"
+        virtualenv_command: python3 -m venv
+
+    # - name: Configure environment variables
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/profile.d/comfyui.sh
+    #     line: export PATH="{{ _path }}/env/bin:$PATH"
+    #     create: yes
+    #     state: present
+
+    - name: Create systemd service unit
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=ComfyUI Server
+          After=network.target
+
+          [Service]
+          User=root
+          Group=root
+          WorkingDirectory={{ _path }}
+          ExecStart=source {{ _path }}/venv && {{ _path }}/main.py --listen 0.0.0.0
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/comfyui.service
+        owner: root
+        group: root
+        mode: '0644'
+      register: _service
+
+    - name: Reload systemd manager configuration
+      when: _service is changed
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Start and enable ComfyUI service
+      ansible.builtin.systemd:
+        name: comfyui
+        state: started
+        enabled: yes

@@ -1,0 +1,19 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-swapwiper-control 
+    state: "{{ sec_policy_swapwiper_control }}"
+
+- name: Copy config /etc/parsec/swap_wiper.conf
+  copy:
+    src:    etc/parsec/swap_wiper.conf
+    dest:   /etc/parsec/swap_wiper.conf
+    owner:  root
+    group:  root
+    mode:   0644
+  when: sec_policy_swapwiper_control == 1
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-secdel-control 
+    state: "{{ sec_policy_secdel_control }}"
+    notify: reboot server

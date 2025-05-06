@@ -1,0 +1,2 @@
+@reboot         root    if [ -x /etc/afick/afick_check.sh ]; then /etc/afick/afick_check.sh; fi
+12 5 * * *      root    if [ -x /etc/afick/afick_check.sh ]; then /etc/afick/afick_check.sh; fi

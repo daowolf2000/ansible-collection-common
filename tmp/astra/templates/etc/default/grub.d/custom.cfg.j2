@@ -1,0 +1,7 @@
+# Доп. настройки для grub
+# Выенсено в отдельный файл, т.к. сами утилиты astra linux активно переписывают файл /etc/default/grub,
+
+GRUB_TIMEOUT={{ sec_grub_timeout }}
+{{ '#' if sec_grub_recovery else ''}}GRUB_DISABLE_RECOVERY="true"
+GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT {{ sec_grub_extra_option }}"
+

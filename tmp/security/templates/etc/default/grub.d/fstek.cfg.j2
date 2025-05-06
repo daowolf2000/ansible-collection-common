@@ -1,0 +1,13 @@
+# Применение рекомендаций ФСТЭК
+# init_on_alloc=1           - Инициализировать динамическую ядерную память нулем при ее выделении
+# slab_nomerge              - Запретить слияние кэшей ядерного аллокатора
+# iommu=force               - Инициализация механизма IOMMU
+# iommu.strict=1            - Инициализация механизма IOMMU
+# iommu.passthrough=0       - Инициализация механизма IOMMU
+# randomize_kstack_offset=1 - Рандомизировать расположение ядерного стека
+# mitigations=auto,nosmt    - Включить средства защиты от аппаратных уязвимостей центрального процессора (для платформы x86) 
+# vsyscall=none             - Отключить устаревший интерфейс vsyscall 
+# debugfs=no-mount          - Отключить монтирование виртуальной файловой системы debugfs 
+# tsx=off                   - Отключить технологию Transactional Synchronization Extensions (TSX) 
+
+GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT {{ ' init_on_alloc=1' if security_fstek_grub_init_on_alloc else '' }}{{ ' slab_nomerge' if security_fstek_grub_slab_nomerge else '' }}{{ ' iommu=force iommu.strict=1 iommu.passthrough=0' if security_fstek_grub_iommu else '' }}{{ ' randomize_kstack_offset=1' if security_fstek_grub_randomize_kstack else '' }}{{ ' mitigations=auto,nosmt' if security_fstek_grub_mitigations else '' }}{{ ' vsyscall=none' if security_fstek_grub_vsyscall else '' }}{{ ' debugfs=no-mount' if security_fstek_grub_debugfs else '' }}{{ ' tsx=off' if security_fstek_grub_tsx_off else ''}}"

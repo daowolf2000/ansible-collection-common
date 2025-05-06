@@ -1,0 +1,9 @@
+- name: Switch to security_level (astra-modeswitch)
+  shell: if [ $(astra-modeswitch get) != {{ sec_level }} ]; then astra-modeswitch set {{ sec_level }} ; else echo skip; fi
+  register: result
+  changed_when: result.stdout != "skip"
+
+- name: Reboot after astra-modeswitch
+  reboot: 
+    reboot_timeout: 60
+  when: result.stdout != "skip"

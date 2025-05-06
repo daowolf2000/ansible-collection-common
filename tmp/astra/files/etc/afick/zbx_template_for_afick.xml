@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.0</version>
+    <date>2023-10-12T11:46:38Z</date>
+    <groups>
+        <group>
+            <uuid>7df96b18c230490a9a0a9e2307226338</uuid>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <uuid>51b23ac92dbb46eea2c7a973ff8bd59d</uuid>
+            <template>AFICK_KC</template>
+            <name>AFICK_KC</name>
+            <description>Шаблон для Afick КЦ</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>4b9f47f352374eecac8cd62c51c600ad</uuid>
+                    <name>Afick_block_count</name>
+                    <type>TRAP</type>
+                    <key>afick_block_count</key>
+                    <delay>0</delay>
+                    <allowed_hosts>{HOST.NAME}</allowed_hosts>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>AFICK</value>
+                        </tag>
+                    </tags>
+                    <triggers>
+                        <trigger>
+                         <uuid>c781251675cb4ff3a0b8ed5ecde7ba67</uuid>
+    <expression>last(/AFICK_KC/afick_block_count,#1)&gt;0</expression>
+                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+<recovery_expression>last(/AFICK_KC/afick_block_count,#1)=0</recovery_expression>
+                            <name>НАРУШЕНИЕ КЦ! {HOST.NAME}</name>
+                            <priority>DISASTER</priority>
+                            <description>Событие нарушения КЦ AFICK</description>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <uuid>f1c00a5a31ae4623bcf52f9fcade6c1f</uuid>
+                    <name>Afick_block_files</name>
+                    <type>TRAP</type>
+                    <key>afick_block_files</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <allowed_hosts>{HOST.NAME}</allowed_hosts>
+                    <tags>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>AFICK</value>
+                        </tag>
+                        <tag>
+                            <tag>Application</tag>
+                            <value>{HOST.NAME}</value>
+                        </tag>
+                    </tags>
+                </item>
+            </items>
+            <tags>
+                <tag>
+                    <tag>Afick</tag>
+                </tag>
+            </tags>
+        </template>
+    </templates>
+</zabbix_export>

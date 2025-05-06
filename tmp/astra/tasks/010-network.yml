@@ -1,0 +1,16 @@
+---
+- name: Rename server
+  command: /usr/bin/hostnamectl set-hostname "{{ inventory_hostname }}"
+  when: ansible_hostname != inventory_hostname
+
+- name: Copy settings file
+  template: 
+    src:    "{{ item }}.j2" 
+    dest:   "/{{ item }}"
+    owner:  root
+    group:  root 
+    mode:   0644
+  loop:
+  - etc/hosts
+  - etc/resolv.conf
+

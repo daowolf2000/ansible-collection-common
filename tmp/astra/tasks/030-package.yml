@@ -1,0 +1,5 @@
+- name: Install basic package
+  apt:
+    name: "{{ item }}" 
+    state: present
+  loop: "{{ package }}"

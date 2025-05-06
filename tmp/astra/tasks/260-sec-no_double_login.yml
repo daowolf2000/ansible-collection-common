@@ -1,0 +1,15 @@
+- name: Copy script no_double_login.sh
+  copy:
+    src:    etc/no_double_logins.sh
+    dest:   /etc/no_double_logins.sh
+    owner:  root
+    group:  root
+    mode:   0755
+
+- name: Config profile
+  template:
+    src:    etc/profile.j2
+    dest:   /etc/profile
+    owner:  root
+    group:  root
+    mode:   0644

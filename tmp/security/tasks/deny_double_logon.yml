@@ -1,0 +1,20 @@
+---
+- name: Copy script deny_double_logon.sh
+  ansible.builtin.copy:
+    src:    etc/deny_double_logon.sh
+    dest:   /etc/deny_double_logon.sh
+    owner:  root
+    group:  root
+    mode:   "0755"
+  become: true
+
+- name: Config profile
+  ansible.builtin.lineinfile:
+    line:   /bin/bash /etc/deny_double_logon.sh
+    dest:   /etc/profile
+    owner:  root
+    group:  root
+    mode:   "0644"
+    state: "{{ 'present' if security_deny_double_logon else 'absent' }}"
+  become: true
+  tags: [print_action]

@@ -1,0 +1,48 @@
+- name: Create folder /etc/afick
+  file:
+    path: /etc/afick
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy file for afick
+  copy:
+    src: "{{ item.name }}"
+    dest: "/{{ item.name }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.owner | default('root') }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { owner: root, group: astra-admin,  mode: 0660, name: etc/afick.conf                  }
+    - { owner: root, group: root,         mode: 0500, name: etc/afick/afick_check.sh        }
+    - { owner: root, group: root,         mode: 0500, name: etc/afick/afick_update.sh       }
+    - { owner: root, group: astra-admin,  mode: 0664, name: etc/afick/unblocked_groups.list }
+    - { owner: root, group: astra-admin,  mode: 0664, name: etc/cron.d/afick                }
+  notify: afick check
+
+- name: Copy common-auth
+  template:
+    src:    etc/pam.d/common-auth.j2
+    dest:   /etc/pam.d/common-auth
+    owner:  root
+    group:  root
+    mode:   0644
+
+- name: Copy script /etc/afick/send_to_zabbix.sh
+  template: 
+    src:    etc/afick/send_to_zabbix.sh.j2 
+    dest:   /etc/afick/send_to_zabbix.sh
+    owner:  root 
+    group:  root 
+    mode:   0500
+
+- name: Create file for blocked_group.list
+  file:
+    path: /etc/afick/blocked_groups.list
+    state: touch
+    owner: root
+    group: astra-admin
+    mode: 0664
+    modification_time: preserve
+    access_time: preserve

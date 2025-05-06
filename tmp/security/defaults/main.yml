@@ -1,0 +1,29 @@
+security_deny_double_logon: false   # Запретить двойной вход пользователя
+
+security_fstek            : false   # Применить рекомендации ФСТЭК
+
+security_fstek_grub_init_on_alloc               : true  # Инициализировать динамическую ядерную память нулем при ее выделении
+security_fstek_grub_slab_nomerge                : true  # Запретить слияние кэшей ядерного аллокатора
+security_fstek_grub_iommu                       : true  # Инициализация механизма IOMMU
+security_fstek_grub_randomize_kstack            : true  # Рандомизировать расположение ядерного стека
+security_fstek_grub_mitigations                 : true  # Включить средства защиты от аппаратных уязвимостей центрального процессора (для платформы x86)
+security_fstek_grub_vsyscall                    : true  # Отключить устаревший интерфейс vsyscall
+security_fstek_grub_debugfs                     : true  # Отключить монтирование виртуальной файловой системы debugfs
+security_fstek_grub_tsx_off                     : true  # Отключить технологию Transactional Synchronization Extensions (TSX)
+security_fstek_sysctl_dmesg_restrict            : 1     # Ограничение доступа к журналу ядра
+security_fstek_sysctl_kptr_restrict             : 2     # Замена ядерных адресов в /proc и других интерфейсах на 0
+security_fstek_sysctl_bpf_jit_harden            : 2     # Включение защиты подсистемы eBPF JIT ядра Linux
+security_fstek_sysctl_perf_event_paranoid       : 3     # Ограничение доступа к событиям производительности
+security_fstek_sysctl_kexec_load_disabled       : 1     # Отключить системный вызов kexec_load
+security_fstek_sysctl_max_user_namespaces       : 0     # Ограничить использование user namespaces
+security_fstek_sysctl_unprivileged_bpf_disabled : 1     # Запретить системный вызов bpf для непривилегированных пользователей
+security_fstek_sysctl_unprivileged_userfaultfd  : 0     # Запретить системный вызов userfaultfd для непривилегированных пользователей
+security_fstek_sysctl_ldisc_autoload            : 0     # Запретить автоматическую загрузку модулей ядра, отвечающих за поддержку дисциплины линии терминала
+security_fstek_sysctl_mmap_min_addr             : 4096  # Определение минимального виртуального адреса, который процессу разрешено использовать для mmap
+security_fstek_sysctl_randomize_va_space        : 2     # Реализовать рандомизацию адресного пространства, которая защищает от атак на переполнение буфера
+security_fstek_sysctl_ptrace_scope              : 3     # Запретить подключение к другим процессам с помощью ptrace
+security_fstek_sysctl_protected_symlinks        : 1     # Ограничить небезопасные варианты прохода по символическим ссылкам (symlinks)
+security_fstek_sysctl_protected_hardlinks       : 1     # Ограничить небезопасные варианты работы с жесткими ссылками (hardlinks)
+security_fstek_sysctl_protected_fifos           : 2     # Включить защиту от непреднамеренной записи в FIFO-объект
+security_fstek_sysctl_protected_regular         : 2     # Включить защиту от непреднамеренной записи в файл
+security_fstek_sysctl_suid_dumpable             : 0     # Запретить создание core dump для некоторых исполняемых файлов

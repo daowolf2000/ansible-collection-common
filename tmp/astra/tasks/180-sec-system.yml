@@ -1,0 +1,48 @@
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-overlay 
+    state: "{{ sec_policy_overlay }}"
+    notify: reboot server
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-sysrq-lock 
+    state: "{{ sec_policy_sysrq_lock }}"
+
+# - import_tasks: astra-sec-setup.yml
+#   vars: 
+#     name: astra-mount-lock 
+#     state: "{{ sec_policy_mount_lock }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-commands-lock 
+    state: "{{ sec_policy_commands_lock }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-shutdown-lock 
+    state: "{{ sec_policy_shutdown_lock }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-ulimits-control 
+    state: "{{ sec_policy_ulimits_control }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-sumac-lock 
+    state: "{{ sec_policy_sumac_lock }}"
+
+- import_tasks: astra-sec-setup.yml
+  vars: 
+    name: astra-ptrace-lock 
+    state: "{{ sec_policy_ptrace_lock }}"
+
+
+
+
+
+
+
+

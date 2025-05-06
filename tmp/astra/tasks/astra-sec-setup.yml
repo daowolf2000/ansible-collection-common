@@ -1,0 +1,9 @@
+- name: "Setup {{ name }} to {{ state }}"
+  shell: if [ "{{ state }}" == 0 ]; then ( "{{ name }}" status &>/dev/null  && "{{ name }}" disable || echo "skip" ); else ( "{{ name }}" status &>/dev/null && echo skip  || "{{ name }}" enable ); fi 
+  register: result
+  changed_when: result.stdout != "skip"
+  # failed_when: result.rc != 0
+  notify: "{{ notify | d('noop') }}"
+
+- meta: flush_handlers
+  when: notify == "reboot server" and result.stdout != "skip"

@@ -1,0 +1,17 @@
+- name: Copy policy of auddb (other:0)
+  copy: 
+    src:    "etc/parsec/auddb/other:0" 
+    dest:   "/etc/parsec/auddb/other:0"
+    owner:  root 
+    group:  root
+    mode:   0644 
+
+- name: Copy audit.rules
+  copy: 
+    src:    "etc/audit/rules.d/audit.rules" 
+    dest:   "/etc/audit/rules.d/audit.rules"
+    owner:  root 
+    group:  root
+    mode:   0644  
+  notify: update audit
+

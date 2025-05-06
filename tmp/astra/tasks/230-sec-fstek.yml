@@ -1,0 +1,33 @@
+- name: Copy grub config
+  template: 
+    src:    etc/default/grub.d/fstek.cfg.j2
+    dest:   /etc/default/grub.d/fstek.cfg
+    owner:  root
+    group:  root
+    mode:   0644
+  notify: make grub
+
+- name: Config sysctl property for security
+  sysctl: 
+    name:       "{{ item.name }}"
+    value:      "{{ item.value }}"
+    sysctl_set: yes
+    reload:     yes
+  loop:
+    - { name: kernel.dmesg_restrict            , value: "{{ sec_sysctl_dmesg_restrict }}" }
+    - { name: kernel.kptr_restrict             , value: "{{ sec_sysctl_kptr_restrict }}" }
+    - { name: net.core.bpf_jit_harden          , value: "{{ sec_sysctl_bpf_jit_harden }}" }
+    - { name: kernel.perf_event_paranoid       , value: "{{ sec_sysctl_perf_event_paranoid }}" }
+    - { name: kernel.kexec_load_disabled       , value: "{{ sec_sysctl_kexec_load_disabled }}" }
+    - { name: user.max_user_namespaces         , value: "{{ sec_sysctl_max_user_namespaces }}" }
+    - { name: kernel.unprivileged_bpf_disabled , value: "{{ sec_sysctl_unprivileged_bpf_disabled }}" }
+    - { name: vm.unprivileged_userfaultfd      , value: "{{ sec_sysctl_unprivileged_userfaultfd }}" }
+    - { name: dev.tty.ldisc_autoload           , value: "{{ sec_sysctl_ldisc_autoload }}" }
+    - { name: vm.mmap_min_addr                 , value: "{{ sec_sysctl_mmap_min_addr }}" }
+    - { name: kernel.randomize_va_space        , value: "{{ sec_sysctl_randomize_va_space }}" }
+    - { name: kernel.yama.ptrace_scope         , value: "{{ sec_sysctl_ptrace_scope }}" }
+    - { name: fs.protected_symlinks            , value: "{{ sec_sysctl_protected_symlinks }}" }
+    - { name: fs.protected_hardlinks           , value: "{{ sec_sysctl_protected_hardlinks }}" }
+    - { name: fs.protected_fifos               , value: "{{ sec_sysctl_protected_fifos }}" }
+    - { name: fs.protected_regular             , value: "{{ sec_sysctl_protected_regular }}" }
+    - { name: fs.suid_dumpable                 , value: "{{ sec_sysctl_suid_dumpable }}" }
