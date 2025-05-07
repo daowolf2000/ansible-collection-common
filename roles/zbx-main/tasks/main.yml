@@ -11,14 +11,16 @@
         shell: /bin/false
         password: "!"
         home: "{{ zabbix_path }}"
+  tags: [ install, users ]
 
 - name: Set owner for zabbix home
   ansible.builtin.file:
     path: "{{ zabbix_path }}"
     state: directory
-    owner: "{{ zabbix_user_uid }}"
-    group: "{{ zabbix_user_gid }}"
+    owner: 1997
+    group: 1995
     recurse: true
+  tags: [ install, users ]
 
 - name: Create folders structure for zbx-main
   file:

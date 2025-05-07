@@ -5,7 +5,7 @@ services:
   zbx_db:
     container_name: zbx_db
     image:  {{ zbx_db_image }}
-    restart: {{ docker_restart_policy }}
+    restart: always
     command: -c max_connections={{ zbx_db_max_connections }}
     shm_size: {{ zbx_db_shm_size }}  # Разделяемая память, по умолчанию 64MB. 
     ports:
@@ -31,14 +31,9 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - ./enc:/var/lib/zabbix/enc:ro
-      - ./ssh_keys:/var/lib/zabbix/ssh_keys:ro
-      - ./alertscripts:/usr/lib/zabbix/alertscripts:ro
-      - ./externalscripts:/usr/lib/zabbix/externalscripts:ro
-      - ./dbscripts:/var/lib/zabbix/dbscripts:ro
-      - ./modules:/var/lib/zabbix/modules:ro
-      - ./export:/var/lib/zabbix/export:rw
-      # - ./mnt/alert:/mnt/alert:rw
+{% for vol in zbx_srv_volumes %}    
+      - {{ vol }}
+{% endfor %}
     tmpfs: /tmp             # Это по идее должно ускорять работу образа
     ulimits:
       nproc:  {{ zbx_srv_ulimits_nproc }}
@@ -51,8 +46,8 @@ services:
     depends_on:
       - zbx_db
     networks:
-      front:
-      back:
+      front_zbx:
+      back_zbx:
         aliases:
           - zbx_srv
     stop_grace_period: {{ zbx_srv_stop_grace_period }}
@@ -77,12 +72,12 @@ services:
 {% endif %}
 
 networks:
-  front:
+  front_zbx:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
       
-  back:
+  back_zbx:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"

@@ -8,6 +8,8 @@ zbx_srv_ulimits_nofile_soft       : 20000
 zbx_srv_ulimits_nofile_hard       : 40000
 zbx_srv_stop_grace_period         : 30s
 
+zbx_srv_dns: "{{ omit }}"
+
 zbx_srv_cap_add_net_raw   : false
 zbx_srv_sysctls:
   - net.ipv4.ip_local_port_range=1024 64999
@@ -16,45 +18,94 @@ zbx_srv_sysctls:
   - net.ipv4.conf.all.send_redirects=0
 #   - net.ipv4.ping_group_range=0 1995
 
-zbx_srv_debuglevel    : 3
+zbx_srv_volumes:
+  - ./enc:/var/lib/zabbix/enc:ro
+  - ./ssh_keys:/var/lib/zabbix/ssh_keys:ro
+  - ./alertscripts:/usr/lib/zabbix/alertscripts:ro
+  - ./externalscripts:/usr/lib/zabbix/externalscripts:ro
+  - ./dbscripts:/var/lib/zabbix/dbscripts:ro
+  - ./modules:/var/lib/zabbix/modules:ro
 
-zbx_srv_startpollers            : 5
-zbx_srv_ipmipoolers             : 0 
-zbx_srv_startpreprocessors      : 3
-zbx_srv_startconnectors         : 1
-zbx_srv_startpollersunreachable : 1
-zbx_srv_starttrappers           : 1
-zbx_srv_startpingers            : 1
-zbx_srv_startdiscoverers        : 1
-zbx_srv_startodbcpollers        : 0
-zbx_srv_starthttppollers        : 1
-zbx_srv_starthistorypollers     : 5
-zbx_srv_starttimers             : 1
-zbx_srv_startescalators         : 1
-zbx_srv_start_alerters          : 3
-zbx_srv_startlldprocessors      : 2
-zbx_srv_startjavapollers        : 0
-zbx_srv_startvmwarecollectors   : 0
-
-zbx_srv_cachesize               : 8M
-zbx_srv_cacheupdatefrequency    : 10
-zbx_srv_startdbsyncers          : 4
-zbx_srv_historycachesize        : 16M
-zbx_srv_historyindexcachesize   : 4M
-zbx_srv_historystoragedateindex : 0
-zbx_srv_trendcachesize          : 4M
-zbx_srv_trendfunctioncachesize  : 4M
-zbx_srv_valuecachesize          : 8M
-zbx_srv_timeout                 : 10
-zbx_srv_trappertimeout          : 300
-zbx_srv_unreachableperiod       : 45
-zbx_srv_unavailabledelay        : 60
-zbx_srv_unreachabledelay        : 15
-
-zbx_srv_startproxypollers       : 1
-zbx_srv_proxyconfigfrequency    : 10
-zbx_srv_proxydatafrequency      : 1
-
+zbx_srv_env: |
+  # ZBX_LISTENIP=
+  # ZBX_LISTENBACKLOG=
+  # ZBX_HISTORYSTORAGEURL=http://elasticsearch:9200/ # Available since 3.4.5
+  # ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.5
+  # ZBX_ALLOWUNSUPPORTEDDBVERSIONS=0 # Available since 6.0.0
+  # ZBX_DBTLSCONNECT=required # Available since 5.0.0
+  # ZBX_DBTLSCAFILE=/run/secrets/root-ca.pem # Available since 5.0.0
+  # ZBX_DBTLSCERTFILE=/run/secrets/client-cert.pem # Available since 5.0.0
+  # ZBX_DBTLSKEYFILE=/run/secrets/client-key.pem # Available since 5.0.0
+  # ZBX_DBTLSCIPHER= # Available since 5.0.0
+  # ZBX_DBTLSCIPHER13= # Available since 5.0.0
+  # ZBX_AUTOHANODENAME=fqdn # Allowed values: fqdn, hostname. Available since 6.0.0
+  # ZBX_HANODENAME= # Available since 6.0.0
+  # ZBX_AUTONODEADDRESS=fqdn # Allowed values: fqdn, hostname. Available since 6.0.0
+  # ZBX_NODEADDRESSPORT=10051 # Allowed to use with ZBX_AUTONODEADDRESS variable only. Available since 6.0.0
+  # ZBX_NODEADDRESS=localhost:10051 # Available since 6.0.0
+  ZBX_DEBUGLEVEL=3
+  ZBX_STARTPOLLERS=3
+  ZBX_IPMIPOLLERS=0
+  ZBX_STARTPREPROCESSORS=3
+  ZBX_STARTCONNECTORS=1
+  ZBX_STARTPOLLERSUNREACHABLE=1
+  ZBX_STARTTRAPPERS=1
+  ZBX_STARTPINGERS=1
+  ZBX_STARTDISCOVERERS=1
+  ZBX_STARTODBCPOLLERS=0
+  ZBX_STARTHTTPPOLLERS=1
+  ZBX_STARTHISTORYPOLLERS=3
+  ZBX_STARTTIMERS=1
+  ZBX_STARTESCALATORS=1
+  ZBX_STARTALERTERS=1
+  ZBX_STARTLLDPROCESSORS=1
+  # ZBX_JAVAGATEWAY_ENABLE=true
+  # ZBX_JAVAGATEWAY=zabbix-java-gateway
+  # ZBX_JAVAGATEWAYPORT=10052
+  ZBX_STARTJAVAPOLLERS=0
+  ZBX_STARTVMWARECOLLECTORS=0
+  # ZBX_VMWAREFREQUENCY=60
+  # ZBX_VMWAREPERFFREQUENCY=60
+  # ZBX_VMWARECACHESIZE=8M
+  # ZBX_VMWARETIMEOUT=10
+  # ZBX_ENABLE_SNMP_TRAPS=true
+  # ZBX_SOURCEIP=
+  # ZBX_HOUSEKEEPINGFREQUENCY=1
+  # ZBX_MAXHOUSEKEEPERDELETE=5000
+  # ZBX_PROBLEMHOUSEKEEPINGFREQUENCY=60
+  ZBX_CACHESIZE=8M
+  ZBX_CACHEUPDATEFREQUENCY=10
+  ZBX_STARTDBSYNCERS=4
+  ZBX_HISTORYCACHESIZE=16M
+  ZBX_HISTORYINDEXCACHESIZE=4M
+  ZBX_HISTORYSTORAGEDATEINDEX=0
+  ZBX_TRENDCACHESIZE=4M
+  ZBX_TRENDFUNCTIONCACHESIZE=4M
+  ZBX_VALUECACHESIZE=8M
+  ZBX_TIMEOUT=10
+  ZBX_TRAPPERTIMEOUT=300
+  ZBX_UNREACHABLEPERIOD=45
+  ZBX_UNAVAILABLEDELAY=60
+  ZBX_UNREACHABLEDELAY=15
+  # ZBX_LOGSLOWQUERIES=3000
+  # ZBX_EXPORTFILESIZE=
+  ZBX_STARTPROXYPOLLERS=1
+  ZBX_PROXYCONFIGFREQUENCY=10
+  ZBX_PROXYDATAFREQUENCY=1
+  # ZBX_LOADMODULE="dummy1.so,dummy2.so,dummy10.so"
+  # ZBX_TLSCAFILE=
+  # ZBX_TLSCRLFILE=
+  # ZBX_TLSCERTFILE=
+  # ZBX_TLSKEYFILE=
+  # ZBX_VAULT=HashiCorp # Available since 6.2.0
+  # ZBX_VAULTDBPATH=
+  # ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+  # ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
+  # ZBX_VAULTURL=https://127.0.0.1:8200
+  # VAULT_TOKEN=
+  # ZBX_STARTREPORTWRITERS=0
+  # ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report
+  # ZBX_SERVICEMANAGERSYNCFREQUENCY=60
 
 
 
