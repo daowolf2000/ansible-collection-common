@@ -1,0 +1,16 @@
+[Unit]
+Description=Docker compose app service for openwebui 
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User=postgres
+WorkingDirectory={{ postgres_path }}
+ExecStartPre=/usr/bin/docker compose -f {{ postgres_item.key}}.yml down
+ExecStart=/usr/bin/docker compose -f {{ postgres_item.key}}.yml up
+ExecStop=/usr/bin/docker compose -f {{ postgres_item.key}}.yml down
+
+[Install]
+WantedBy=multi-user.target

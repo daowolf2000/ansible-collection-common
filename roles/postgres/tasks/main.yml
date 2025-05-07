@@ -1,0 +1,24 @@
+---
+- name: Create user for postgres
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.users
+  vars:
+    users_x:
+      postgres:
+        uid: 70
+        gid: 70
+        system: true
+        shell: /bin/sh
+        password: "!"
+        home: "{{ postgres_path }}"
+  tags: [ install, users ]
+
+- name: Set owner for postgres home
+  ansible.builtin.file:
+    path: "{{ postgres_path }}"
+    state: directory
+    owner: 70
+    group: 70
+    recurse: true
+  tags: [ install, users ]
+
