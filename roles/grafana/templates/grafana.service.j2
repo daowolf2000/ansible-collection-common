@@ -6,7 +6,7 @@ After=docker.service
 [Service]
 Restart=always
 RestartSec=5
-User={{ grafana_user }}
+User=grafana
 WorkingDirectory={{ grafana_path }}
 # Shutdown container (if running) when unit is started
 ExecStartPre=/usr/bin/docker compose -f docker-compose.yml down
