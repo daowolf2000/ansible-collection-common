@@ -1,0 +1,35 @@
+---
+- name: "{{ postgres_item.key }} | Combine user config with default settings"
+  ansible.builtin.set_fact:
+    postgres_current: "{{ postgres_db_default | combine(postgres_item.value) }}"
+
+- name: "{{ postgres_item.key }} | Stop service"
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name    : "pg-{{ postgres_item.key }}"
+    enabled : false
+    state   : stopped
+  register: res_service
+  failed_when: false
+
+- name: "{{ postgres_item.key }} | Remove service"
+  ansible.builtin.file:
+    path  : "/etc/systemd/system/pg-{{ postgres_item.key }}.service"
+    state : absent
+  register: res_file
+
+- name: "{{ postgres_item.key }} | Reload systemd daemon"
+  when: res_service is changed or res_file is changed
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: "{{ postgres_item.key }} | Delete files and data"
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - pg-{{ postgres_item.key }}.yml
+    - pg-{{ postgres_item.key }}.env
+    - "{{ postgres_path }}/{{ postgres_current.data }}"
+  loop_control:
+    loop_var: pg_item

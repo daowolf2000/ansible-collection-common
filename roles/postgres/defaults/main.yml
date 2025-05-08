@@ -1,13 +1,14 @@
 ---
-postgres_path: /opt/postgres                                # Каталог для пользователя postgres
+postgres_path: /opt/postgres                  # Каталог для пользователя postgres
 
 
-postgres_db_default:                        # Параметры БД по умолчанию
-  image: timescale/timescaledb:2.15.0-pg16  # Docker-образ
-  port: 5432                                # Порт
-  data: ./data                              # Каталог для файлов БД (относительно postgres_path )
-  username: test                            # Имя пользователя БД
-  password: test                            # Пароль для подключения к БД
-  shm_size: 1g                              # Разделяемая память
-  command: -c max_connections=1000          # Параметры для запуска БД
-  env: ""                                   # Дополнительные переменные окружения (например ENABLE_TIMESCALEDB=true)
+postgres_db_default:                          # Параметры БД по умолчанию
+  image: "timescale/timescaledb:2.15.0-pg16"  # Docker-образ
+  state: present                              # 
+  port: 5432                                  # Порт
+  data: ./data                                # Каталог для файлов БД (относительно postgres_path )
+  username: test                              # Имя пользователя БД
+  password: test                              # Пароль для подключения к БД
+  shm_size: 1g                                # Разделяемая память
+  command: -c max_connections=1000            # Параметры для запуска БД
+  env: ""                                     # Дополнительные переменные окружения (например ENABLE_TIMESCALEDB=true)

@@ -11,14 +11,22 @@
         shell: /bin/sh
         password: "!"
         home: "{{ postgres_path }}"
+        groups: docker
   tags: [ install, users ]
 
 - name: Set owner for postgres home
   ansible.builtin.file:
-    path: "{{ postgres_path }}"
+    path: "{{ postgres_path }}"                                
     state: directory
     owner: 70
     group: 70
-    recurse: true
+    mode: "0770"
   tags: [ install, users ]
 
+- name: Configure postgres base {{ postgres_item.key }}
+  when: postgres_db is defined
+  ansible.builtin.include_tasks: pg_{{ postgres_item.value.state | d('present') }}.yml
+  loop: "{{ postgres_db | dict2items }}"
+  loop_control:
+    loop_var: postgres_item
+  tags: [ config ]

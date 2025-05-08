@@ -1,0 +1,49 @@
+---
+- name: "{{ postgres_item.key }} | Combine user config with default settings"
+  ansible.builtin.set_fact:
+    postgres_current: "{{ postgres_db_default | combine(postgres_item.value) }}"
+
+- debug:
+    var: postgres_current
+
+- name: "pg-{{ postgres_item.key }} | Create data folder"
+  ansible.builtin.file:
+    path: "{{ postgres_path }}/{{ postgres_current.data }}"
+    state: directory
+    owner: 70
+    group: 70
+    mode: "0770"
+
+- name: "pg-{{ postgres_item.key }} | Copy compose"
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ postgres_path }}/pg-{{ postgres_item.key }}.yml"
+    owner: 70
+    group: 70
+    mode: "0660"
+  register: res_compose
+
+- name: "pg-{{ postgres_item.key }} | Copy env"
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ postgres_path }}/pg-{{ postgres_item.key }}.env"
+    owner: 70
+    group: 70
+    mode: "0660"
+  register: res_env
+
+- name: "pg-{{ postgres_item.key }} | Create service"
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/pg-{{ postgres_item.key }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: res_service
+
+- name: "pg-{{ postgres_item.key }} | Restart service"
+  when: res_compose is changed or res_env is changed or res_service is changed
+  ansible.builtin.systemd:
+    name: pg-{{ postgres_item.key }}
+    state: restarted
+    daemon_reload: true

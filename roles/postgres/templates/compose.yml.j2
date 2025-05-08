@@ -2,13 +2,13 @@ version: '3.5'
 services:
   {{ postgres_item.key }}:
     container_name: {{ postgres_item.key }}
-    image:  {{ postgres_item.image }}
+    image:  {{ postgres_current.image }}
     restart: always
-    command: {{ postgres_item.command }}
-    shm_size: {{ postgres_item.shm_size }}  # Разделяемая память, по умолчанию 64MB. 
+    command: {{ postgres_current.command }}
+    shm_size: {{ postgres_current.shm_size }}  # Разделяемая память, по умолчанию 64MB. 
     ports:
-      - "{{ postgres_item.port }}:5432/tcp"
+      - "{{ postgres_current.port }}:5432/tcp"
     volumes:
-      - {{ postgres_item.data }}:/var/lib/postgresql/data:rw
-    env_file: ./{{ postgres_item.key }}.env
+      - {{ postgres_current.data }}:/var/lib/postgresql/data:rw
+    env_file: ./pg-{{ postgres_item.key }}.env
     stop_grace_period: 3m
