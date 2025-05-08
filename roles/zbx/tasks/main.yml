@@ -1,16 +1,21 @@
 ---
-- name: Create user for zabbix
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.users
-  vars:
-    users_x:
-      zbx:
-        uid: "{{ zbx_uid }}"
-        gid: "{{ zbx_gid }}"
-        groups: docker
-        shell: /bin/false
-        password: "!"
-        home: "{{ zbx_path }}"
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ zbx_user }}"
+    uid: "{{ zbx_uid }}"
+    system: true
+    home: "{{ zbx_path }}"
+    create_home: false
+    shell: /bin/false
+    password: "!"
+    groups: docker
+    append: true
+  tags: [ install, users ]
+
+- name: Create group
+  ansible.builtin.group:
+    name: "{{ zbx_user }}"
+    gid: "{{ zbx_gid }}"
   tags: [ install, users ]
 
 - name: Set owner for zabbix home
@@ -22,35 +27,35 @@
     mode: "0770"
   tags: [ install, users ]
 
-# - name: Create folders for zbx_srv
-#   when: zbx_srv
-#   ansible.builtin.file:
-#     name: "{{ item }}"
-#     state: directory
-#     owner: "{{ zbx_uid }}"
-#     group: "{{ zbx_gid }}"
-#     mode: "0770"
-#   loop: "{{ zbx_srv_volumes }}"
+- name: Create folders for zbx_srv
+  when: zbx_srv
+  ansible.builtin.file:
+    name: "{{ zbx_path }}/{{ item.split(':')[0] }}"
+    state: directory
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0770"
+  loop: "{{ zbx_srv_volumes }}"
 
-# - name: Create folders for zbx_web
-#   when: zbx_web
-#   ansible.builtin.file:
-#     name: "{{ item }}"
-#     state: directory
-#     owner: "{{ zbx_uid }}"
-#     group: "{{ zbx_gid }}"
-#     mode: "0770"
-#   loop: "{{ zbx_web_volumes }}"
+- name: Create folders for zbx_web
+  when: zbx_web
+  ansible.builtin.file:
+    name: "{{ zbx_path }}/{{ item.split(':')[0] }}"
+    state: directory
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0770"
+  loop: "{{ zbx_web_volumes }}"
 
-# - name: Create folders for zbx_snmptraps
-#   when: zbx_snmptraps
-#   ansible.builtin.file:
-#     name: "{{ item }}"
-#     state: directory
-#     owner: "{{ zbx_uid }}"
-#     group: "{{ zbx_gid }}"
-#     mode: "0770"
-#   loop: "{{ zbx_snmptraps_volumes + ['snmptraps'] }}"
+- name: Create folders for zbx_snmptraps
+  when: zbx_snmptraps
+  ansible.builtin.file:
+    name: "{{ zbx_path }}/{{ item.split(':')[0] }}"
+    state: directory
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0770"
+  loop: "{{ zbx_snmptraps_volumes + ['snmptraps'] }}"
 
 - name: Create docker-compose
   ansible.builtin.template:
