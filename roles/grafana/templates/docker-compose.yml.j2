@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  grafana:
+    image: {{ grafana_image }}
+    container_name: grafana
+    restart: unless-stopped
+{% if grafana_env.length > 0 %}
+    environment:
+{% for env in grafana_env %}
+      - {{ env }}
+{% endfor %}
+{% endif %}
+    ports:
+      - '{{ grafana_port }}:3000'
+    volumes:
+      - './data:/var/lib/grafana'

@@ -1,0 +1,19 @@
+[Unit]
+Description=Grafana service (Ansbile managment)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User={{ grafana_user }}
+WorkingDirectory={{ grafana_path }}
+# Shutdown container (if running) when unit is started
+ExecStartPre=/usr/bin/docker compose -f docker-compose.yml down
+# Start container when unit is started
+ExecStart=/usr/bin/docker compose -f docker-compose.yml up
+# Stop container when unit is stopped
+ExecStop=/usr/bin/docker compose -f docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target

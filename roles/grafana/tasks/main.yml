@@ -1,0 +1,29 @@
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ grafana_user }}"
+    groups: docker
+    append: true
+
+- name: Create folder
+  ansible.builtin.file:
+    name: "{{ grafana_path }}"
+    state: directory
+    owner: "{{ grafana_user }}"
+    mode: "0770"
+
+- name: Copy docker-compose
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ grafana_path }}/docker-compose.yml"
+    owner: "{{ grafana_user }}"
+    mode: "0660"
+  notify: Restart grafana
+
+- name: Create service
+  ansible.builtin.template:
+    src: grafana.service.j2
+    dest: /etc/systemd/system/grafana.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart grafana
