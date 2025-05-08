@@ -25,11 +25,11 @@
 
 - name: "{{ postgres_item.key }} | Delete files and data"
   ansible.builtin.file:
-    name: "{{ item }}"
+    name: "{{ pg_item }}"
     state: absent
   loop:
-    - pg-{{ postgres_item.key }}.yml
-    - pg-{{ postgres_item.key }}.env
+    - "{{ postgres_path }}/pg-{{ postgres_item.key }}.yml"
+    - "{{ postgres_path }}/pg-{{ postgres_item.key }}.env"
     - "{{ postgres_path }}/{{ postgres_current.data }}"
   loop_control:
     loop_var: pg_item
