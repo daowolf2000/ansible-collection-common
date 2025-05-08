@@ -3,9 +3,6 @@
   ansible.builtin.set_fact:
     postgres_current: "{{ postgres_db_default | combine(postgres_item.value) }}"
 
-- debug:
-    var: postgres_current
-
 - name: "pg-{{ postgres_item.key }} | Create data folder"
   ansible.builtin.file:
     path: "{{ postgres_path }}/{{ postgres_current.data }}"
