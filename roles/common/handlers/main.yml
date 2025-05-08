@@ -14,12 +14,3 @@
     name: zabbix-agent
     enabled: true
     state: restarted
-
-
-- name: Restart openwebui
-  ansible.builtin.systemd:
-    name: openwebui
-    enabled: true
-    daemon_reload: true
-    state: restarted
-

@@ -1,0 +1,6 @@
+- name: Restart openwebui
+  ansible.builtin.systemd:
+    name: openwebui
+    enabled: true
+    daemon_reload: true
+    state: restarted
