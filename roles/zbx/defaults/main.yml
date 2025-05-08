@@ -1,16 +1,95 @@
----
-# defaults file for zbx-main
-# См. также - group_vars/all в котором определены общие переменые для всех ролей
+zbx_path: /opt/apps/zbx
+zbx_user: zbx
+zbx_uid : 1997
+zbx_gid : 1995
 
-zbx_srv_image : zabbix/zabbix-server-pgsql:latest
-zbx_srv_ulimits_nproc             : 65535 
-zbx_srv_ulimits_nofile_soft       : 20000
-zbx_srv_ulimits_nofile_hard       : 40000
-zbx_srv_stop_grace_period         : 30s
+zbx_db        : true
+zbx_db_pgadmin: true
+zbx_srv       : true
+zbx_snmptraps : true
+zbx_web       : true
 
-zbx_srv_dns: "{{ omit }}"
+zbx_db_image        : "timescale/timescaledb:2.15.0-pg16"
+zbx_pgadmin_image   : "dpage/pgadmin4:6.14"
+zbx_srv_image       : "zabbix/zabbix-server-pgsql:latest"
+zbx_web_image       : "zabbix/zabbix-web-nginx-pgsql:latest"
+zbx_snmptraps_image : "zabbix/zabbix-snmptraps:latest"
 
-zbx_srv_cap_add_net_raw   : false
+zbx_snmptraps_port    : 162
+zbx_snmptraps_volumes : []
+
+# Подключать БД к внешней сети?
+zbx_db_front_net: false     
+zbx_db_ip       : zbx_db           
+zbx_db_port     : 5432
+zbx_db_schema   : public
+zbx_db_name     : zabbix
+zbx_db_user     : zabbix
+zbx_db_password : "{{ lookup('env', 'PASSWORD_DEFAULT') }}"
+
+# Разделяемая память
+zbx_db_shm_size         : 1g
+# Параметр БД max_connections
+zbx_db_max_connections  : 1000
+
+zbx_pgadmin_port    : 5050
+zbx_pgadmin_email   : admin@home.local
+zbx_pgadmin_password: "{{ lookup('env', 'PASSWORD_DEFAULT') }}"
+
+zbx_web_https: false
+zbx_web_volumes:
+  - ./ssl:/etc/ssl/nginx:ro
+  - ./modules/:/usr/share/zabbix/modules/:ro
+
+zbx_web_env: |
+  ZBX_SERVER_HOST={{ zbx_srv_ip }}
+  ZBX_SERVER_PORT={{ zbx_srv_port }}
+  # ZBX_DB_ENCRYPTION=true # Available since 5.0.0
+  # ZBX_DB_KEY_FILE=/run/secrets/client-key.pem # Available since 5.0.0
+  # ZBX_DB_CERT_FILE=/run/secrets/client-cert.pem # Available since 5.0.0
+  # ZBX_DB_CA_FILE=/run/secrets/root-ca.pem # Available since 5.0.0
+  # ZBX_DB_VERIFY_HOST=false # Available since 5.0.0
+  # ZBX_DB_CIPHER_LIST= # Available since 5.0.0
+  # ZBX_VAULT= # Available since 6.2.0
+  # ZBX_VAULTDBPATH=
+  # ZBX_VAULTURL=https://127.0.0.1:8200
+  # VAULT_TOKEN=
+  # ZBX_VAULTCERTFILE= # Available since 6.2.0
+  # ZBX_VAULTKEYFILE= # Available since 6.2.0
+  # ZBX_VAULTCACHE=false # Available since 6.2.0
+  # ZBX_HISTORYSTORAGEURL=http://elasticsearch:9200/ # Available since 3.4.5
+  # ZBX_HISTORYSTORAGETYPES=['uint', 'dbl', 'str', 'text', 'log'] # Available since 3.4.5
+  # ZBX_SSO_SETTINGS=[] # Available since 5.0.0
+  # ENABLE_WEB_ACCESS_LOG=true
+  ZBX_MAXEXECUTIONTIME=600
+  ZBX_MEMORYLIMIT=128M
+  ZBX_POSTMAXSIZE=16M
+  ZBX_UPLOADMAXFILESIZE=2M
+  ZBX_MAXINPUTTIME=300
+  # ZBX_SESSION_NAME=zbx_sessionid
+  # Timezone one of: http://php.net/manual/en/timezones.php
+  PHP_TZ=Asia/Vladisvostok
+  # ZBX_DENY_GUI_ACCESS=false
+  # ZBX_GUI_ACCESS_IP_RANGE=['127.0.0.1']
+  # ZBX_GUI_WARNING_MSG=Zabbix is under maintenance.
+  # HTTP_INDEX_FILE=index.php
+  # EXPOSE_WEB_SERVER_INFO=on
+
+  PHP_FPM_PM=dynamic
+  PHP_FPM_PM_MAX_CHILDREN=50
+  PHP_FPM_PM_START_SERVERS=5
+  PHP_FPM_PM_MIN_SPARE_SERVERS=5
+  PHP_FPM_PM_MAX_SPARE_SERVERS=35
+  PHP_FPM_PM_MAX_REQUESTS=0
+
+zbx_srv_ip  : zbx_srv
+zbx_srv_port: 10051
+
+zbx_srv_ulimits_nproc       : 65535 
+zbx_srv_ulimits_nofile_soft : 20000
+zbx_srv_ulimits_nofile_hard : 40000
+
+zbx_srv_cap_add_net_raw: false
 zbx_srv_sysctls:
   - net.ipv4.ip_local_port_range=1024 64999
   - net.ipv4.conf.all.accept_redirects=0
@@ -106,11 +185,3 @@ zbx_srv_env: |
   # ZBX_STARTREPORTWRITERS=0
   # ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report
   # ZBX_SERVICEMANAGERSYNCFREQUENCY=60
-
-
-
-zbx_db_image  : timescale/timescaledb:2.15.0-pg16
-zbx_db_shm_size         : 1g      # Разделяемая память
-zbx_db_max_connections  : 1000    # Параметр БД max_connections
-zbx_db_stop_grace_period: 1m
-

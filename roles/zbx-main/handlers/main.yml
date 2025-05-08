@@ -1,8 +1,0 @@
----
-# handlers file for zbx-main
-- name: restart zbx-main
-  systemd:
-    name:   zbx-main.service
-    state:  restarted
-    daemon_reload:  yes
-    enabled:        yes

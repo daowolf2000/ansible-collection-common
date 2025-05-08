@@ -1,0 +1,6 @@
+- name: Restart zbx
+  ansible.builtin.systemd:
+    name: zbx.service
+    state: restarted
+    enabled: true
+    daemon_reload: true

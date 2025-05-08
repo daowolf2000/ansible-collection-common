@@ -1,0 +1,169 @@
+version: '3.5'
+
+services:
+
+{% if zbx_db %}
+  zbx_db:
+    container_name: zbx_db
+    image:  {{ zbx_db_image }}
+    restart: always
+    command: -c max_connections={{ zbx_db_max_connections }}
+    shm_size: {{ zbx_db_shm_size }}  # Разделяемая память, по умолчанию 64MB. 
+    ports:
+      - "{{ zbx_db_port }}:5432/tcp"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data:rw
+    env_file:
+      - ./env_db
+    stop_grace_period: 3m
+    networks:
+{% if zbx_db_front_net %}
+      front:
+{% endif %}
+      back:
+        aliases:
+          - zbx_db
+          
+{% if zbx_db_pgadmin %}
+  pgadmin:
+    image: {{ zbx_pgadmin_image }}
+    ports: 
+      - "{{ zbx_pgadmin_port }}:5050"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: {{ zbx_pgadmin_email }}
+      PGADMIN_DEFAULT_PASSWORD: {{ zbx_pgadmin_password }}
+      PGADMIN_LISTEN_PORT: 5050
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+    networks:
+      front:
+      back:
+{% endif %}
+
+{% endif %}
+
+{% if zbx_srv %}
+  zbx_srv:
+    container_name: zbx_srv
+    image:  {{ zbx_srv_image }}
+    restart: always
+    ports:
+      - "{{ zbx_srv_port }}:10051"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+{% if zbx_snmptraps %}
+      - ./snmptraps:/var/lib/zabbix/snmptraps:ro
+{% endif %}
+{% for vol in zbx_srv_volumes %}    
+      - {{ vol }}
+{% endfor %}
+    tmpfs: /tmp             # Это по идее должно ускорять работу образа
+    ulimits:
+      nproc:  {{ zbx_srv_ulimits_nproc }}
+      nofile:
+        soft: {{ zbx_srv_ulimits_nofile_soft }}
+        hard: {{ zbx_srv_ulimits_nofile_hard }}
+    env_file:
+      - ./env_db
+      - ./env_srv
+    depends_on:
+      - zbx_db
+    networks:
+      front:
+      back:
+        aliases:
+          - zbx_srv
+    stop_grace_period: 30s
+{% if zbx_srv_cap_add_net_raw %}
+    cap_add:
+      - "NET_RAW"
+{% endif %}
+{% if zbx_srv_sysctls is defined  %}
+    sysctls:
+{% for sysctl in zbx_srv_sysctls|sort() %}
+      - {{ sysctl }}
+{% endfor %}
+{% endif %}
+{% if network_dns  is defined and network_dns.length > 0  %}
+    dns:
+{% for dns in network_dns|sort() %}
+      - {{ dns }}
+{% endfor %}
+{% endif %}
+{% if network_domain_full  is defined and network_domain_full != ""  %}
+    dns_search: {{ network_domain_full }}
+{% endif %}
+
+{% if zbx_snmptraps %}
+  zbx_snmptraps:
+    container_name: zbx_snmptraps
+    image: {{ zbx_snmptraps_image }}
+    ports:
+      - "{{ zbx_snmptraps_port }}:1162/udp"
+    volumes:
+      - ./snmptraps:/var/lib/zabbix/snmptraps:rw
+{% for vol in zbx_snmptraps_volumes %}    
+      - {{ vol }}
+{% endfor %}
+    stop_grace_period: 5s
+    networks:
+      front:
+{% endif %}
+
+{% endif %}
+
+
+##### zbx_web ######################
+
+{% if zbx_web %}
+  zbx_web:
+    container_name: zbx_web
+    image:    {{ zbx_web_image }}
+    restart:  always
+    ports:
+{% if zbx_web_https %}
+      - "443:8443"
+{% else %}
+      - "80:8080"
+{% endif %}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+{% for vol in zbx_web_volumes %}    
+      - {{ vol }}
+{% endfor %}
+    env_file:
+      - ./env_db
+      - ./env_web
+    depends_on:
+      - zbx_db
+      - zbx_srv
+    tmpfs: /tmp            # Это по идее должно ускорять работу образа
+    sysctls:
+      - net.core.somaxconn=65535
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
+    networks:
+      front:
+      back:
+{% endif %}
+
+
+
+
+networks:
+  front:
+    driver: bridge
+    enable_ipv6: false
+      
+  back:
+    driver: bridge
+    enable_ipv6: false
+
+
+

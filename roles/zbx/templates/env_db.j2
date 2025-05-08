@@ -1,8 +1,10 @@
 DB_SERVER_HOST={{ zbx_db_ip }}
 DB_SERVER_PORT={{ zbx_db_port }}
-DB_SERVER_SCHEMA=public
-POSTGRES_DB={{ zbx_db_db }}
+DB_SERVER_SCHEMA={{ zbx_db_schema }}
+POSTGRES_DB={{ zbx_db_name }}
 POSTGRES_USER={{ zbx_db_user }}
-POSTGRES_PASSWORD={{ zbx_db_pass }}
+POSTGRES_PASSWORD={{ zbx_db_password }}
+{% if 'timescaledb' in zbx_db_image %}
 ENABLE_TIMESCALEDB=true
+{% endif %}
 POSTGRES_USE_IMPLICIT_SEARCH_PATH=false

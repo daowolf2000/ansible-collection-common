@@ -1,0 +1,106 @@
+---
+- name: Create user for zabbix
+  ansible.builtin.include_role:
+    name: daowolf2000.linux.users
+  vars:
+    users_x:
+      zbx:
+        uid: "{{ zbx_uid }}"
+        gid: "{{ zbx_gid }}"
+        groups: docker
+        shell: /bin/false
+        password: "!"
+        home: "{{ zbx_path }}"
+  tags: [ install, users ]
+
+- name: Set owner for zabbix home
+  ansible.builtin.file:
+    path: "{{ zbx_path }}"
+    state: directory
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0770"
+  tags: [ install, users ]
+
+# - name: Create folders for zbx_srv
+#   when: zbx_srv
+#   ansible.builtin.file:
+#     name: "{{ item }}"
+#     state: directory
+#     owner: "{{ zbx_uid }}"
+#     group: "{{ zbx_gid }}"
+#     mode: "0770"
+#   loop: "{{ zbx_srv_volumes }}"
+
+# - name: Create folders for zbx_web
+#   when: zbx_web
+#   ansible.builtin.file:
+#     name: "{{ item }}"
+#     state: directory
+#     owner: "{{ zbx_uid }}"
+#     group: "{{ zbx_gid }}"
+#     mode: "0770"
+#   loop: "{{ zbx_web_volumes }}"
+
+# - name: Create folders for zbx_snmptraps
+#   when: zbx_snmptraps
+#   ansible.builtin.file:
+#     name: "{{ item }}"
+#     state: directory
+#     owner: "{{ zbx_uid }}"
+#     group: "{{ zbx_gid }}"
+#     mode: "0770"
+#   loop: "{{ zbx_snmptraps_volumes + ['snmptraps'] }}"
+
+- name: Create docker-compose
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ zbx_path }}/docker-compose.yml"
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0660"
+  notify: Restart zbx
+  tags: [ install, config ]
+
+- name: Create env_db
+  ansible.builtin.template:
+    src: env_db.j2
+    dest: "{{ zbx_path }}/env_db"
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0660"
+  notify: Restart zbx
+  tags: [ install, config ]
+
+- name: Create env_srv
+  when: zbx_srv
+  ansible.builtin.copy:
+    content: "{{ zbx_srv_env }}"
+    dest: "{{ zbx_path }}/env_srv"
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0660"
+  notify: Restart zbx
+  tags: [ install, config ]
+
+- name: Create env_web
+  ansible.builtin.copy:
+    content: "{{ zbx_web_env }}"
+    dest: "{{ zbx_path }}/env_web"
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0660"
+  notify: Restart zbx
+  tags: [ install, config ]
+
+- name: Create service
+  ansible.builtin.template:
+    src: zbx.service.j2
+    dest: "/etc/systemd/system/zbx.service"
+    owner: "{{ zbx_uid }}"
+    group: "{{ zbx_gid }}"
+    mode: "0660"
+  notify: Restart zbx
+  tags: [ install ]
+
+
