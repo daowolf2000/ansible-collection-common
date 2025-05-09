@@ -1,0 +1,59 @@
+---
+- name: Create folder
+  ansible.builtin.file:
+    path: "{{ comfyui_path }}"
+    owner: "{{ comfyui_user }}"
+    group: "{{ comfyui_user }}"
+    state: directory
+    mode: "0770"
+
+- name: Установить python3-venv (для Ubuntu/Debian)
+  ansible.builtin.apt:
+    name: 
+      - python3-virtualenv
+      - python3-pip
+    state: present
+
+- name: Install ComfyUI
+  become: true
+  become_user: "{{ comfyui_user }}"
+  block:
+
+    - name: Clone repo
+      ansible.builtin.git:
+        repo: https://github.com/comfyanonymous/ComfyUI.git
+        dest: "{{ comfyui_path }}"
+        version: "{{ comfyui_version }}"
+      notify: Restart comfyui
+
+    - name: Install PyTorch, torchvision, torchaudio with CUDA
+      ansible.builtin.pip:
+        name:
+          - torch
+          - torchvision
+          - torchaudio
+        extra_args: --extra-index-url https://download.pytorch.org/whl/cu{{ comfyui_cuda_version }}
+        virtualenv: "{{ comfyui_venv }}"
+        virtualenv_python: python3
+
+    - name: Install req
+      ansible.builtin.pip:
+        requirements: "{{ comfyui_path }}/requirements.txt"
+        virtualenv: "{{ comfyui_venv }}"
+        virtualenv_python: python3
+
+    - name: Load models
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "{{ comfyui_path }}/models/checkpoints"
+        mode: "0660"
+      loop: "{{ comfyui_models }}"
+
+- name: Install service
+  ansible.builtin.template:
+    src: comfyui.service.j2
+    dest: /etc/systemd/system/comfyui.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart comfyui

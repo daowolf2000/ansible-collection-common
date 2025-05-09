@@ -1,0 +1,6 @@
+- name: Restart comfyui
+  ansible.builtin.systemd:
+    name: comfyui.service
+    state: restarted
+    enabled: true
+    daemon_reload: true
