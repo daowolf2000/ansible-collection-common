@@ -7,6 +7,7 @@
     o_force : "{{ x_force     | d(key_update) | d(false) }}"        # Принудительное обновление ключей
     o_type  : "{{ x_type      | d('ed25519') }}"    # Тип ключа
     o_copyto: "{{ x_copyto    | d(omit) }}"         # user@host - Куда скопировать pub key
+    o_copyto_port: "{{ x_copyto_port | d(22) }}"
 
   block:
     - name: gen_ssh_key {{ o_key }} | Get userinfo from passwd for user {{ o_user }}
@@ -86,7 +87,7 @@
 
         - name: gen_ssh_key {{ o_key }} | Remove each key on {{ o_copyto }}
           delegate_to: "{{ o_copyto.split('@')[1] }}"
-          ansible.builtin.authorized_key:
+          ansible.posix.authorized_key:
             user  : "{{ o_copyto.split('@')[0] }}"
             key   : "{{ x_old_key_item }}"
             state : absent
@@ -118,11 +119,11 @@
       delegate_to: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"
       ansible.posix.authorized_key:
         user: "{{ ssh_proxy_item.value.sshd.split('@')[0] }}"
-        key : "{{ x_ssh_key_public.content  | b64decode }}"
+        key : "{{ x_ssh_key_public.content | b64decode }}"
         state: present
 
     - name: gen_ssh_key {{ o_key }} | Set output variable
       ansible.builtin.set_fact:
         ssh_gen_key:
           changed : "{{ res_gen_key.changed }}"
-          public  : "{{ x_ssh_key_public.content  | b64decode }}"
+          public  : "{{ x_ssh_key_public.content | b64decode }}"
