@@ -9,18 +9,28 @@
     x_key   : "{{ ssh_proxy_item.key }}"
     x_copyto: "{{ ssh_proxy_item.value.sshd }}"
 
-- name: "{{ ssh_proxy_item.key }} | Add to known_hosts"
-  when: ssh_proxy_add_known_hosts
-  become: true
-  become_user: "{{ ssh_proxy_user }}"
+- name: Scan SSH key
+  ansible.builtin.command: |
+    ssh-keyscan -p "{{ ssh_port }}" "{{ remote_host }}"
+  vars:
+    remote_host: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"  # Замените на ваш хост
+    ssh_port: "{{ ssh_proxy_item.value.port | default(22) }}"
+  register: ssh_keyscan_output
+  changed_when: false
+  failed_when: ssh_keyscan_output.rc != 0
+
+- name: Add to known_hosts
   ansible.builtin.known_hosts:
-    name: "{{ name_host }}"  # IP/домен целевого хоста
-    key: "{{ lookup('pipe', 'ssh-keyscan -p {{ ssh_port }} {{ remote_host }}') }}"
+    name: "{{ name_host }}"
+    key: "{{ ssh_keyscan_output.stdout }}"
     path: "{{ known_hosts_path | default('~/.ssh/known_hosts') }}"
   vars:
     remote_host: "{{ ssh_proxy_item.value.sshd.split('@')[1] }}"  # Замените на ваш хост
     ssh_port: "{{ ssh_proxy_item.value.port | default(22) }}"
-    name_host: "{{ '[' ~ remote_host ~ ']:' ~ ssh_port if ssh_port != 22 else remote_host }}"  
+    name_host: "{{ '[' ~ remote_host ~ ']:' ~ ssh_port if ssh_port != 22 else remote_host }}" 
+  become: true
+  become_user: "{{ ssh_proxy_user }}"
+  when: ssh_proxy_add_known_hosts
 
 - name: "{{ ssh_proxy_item.key }} | Create service"
   ansible.builtin.template:
