@@ -49,6 +49,8 @@
         mode: "0660"
       loop: "{{ comfyui_models }}"
 
+    # TODO: Install https://github.com/Comfy-Org/ComfyUI-Manager
+
 - name: Install service
   ansible.builtin.template:
     src: comfyui.service.j2
