@@ -43,14 +43,14 @@
         virtualenv: "{{ comfyui_venv }}"
         virtualenv_python: python3
 
-    - name: Load models
-      ansible.builtin.get_url:
-        url: "{{ item }}"
-        dest: "{{ comfyui_path }}/models/checkpoints"
-        mode: "0660"
-      loop: "{{ comfyui_models }}"
-
-    # TODO: Install https://github.com/Comfy-Org/ComfyUI-Manager
+    - name: Install ComfyUI-Manager # noqa latest[git]
+      ansible.builtin.git:
+        repo: https://github.com/ltdrdata/ComfyUI-Manager.git
+        dest: "{{ comfyui_path }}/comfyui-manager"
+        version: HEAD
+        force: true 
+      notify: Restart comfyui
+      diff: true
 
 - name: Install service
   ansible.builtin.template:

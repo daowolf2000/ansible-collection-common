@@ -3,5 +3,3 @@ comfyui_path: /opt/apps/comfyui
 comfyui_version: "{{ omit }}"
 comfyui_cuda_version: "122"
 comfyui_venv: "{{ comfyui_path }}/venv"
-comfyui_models:
-  - https://huggingface.co/Comfy-Org/stable-diffusion-3.5-fp8/resolve/main/sd3.5_medium_incl_clips_t5xxlfp8scaled.safetensors
