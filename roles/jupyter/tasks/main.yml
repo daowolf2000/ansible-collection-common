@@ -15,7 +15,8 @@
     virtualenv: "{{ jupyter_venv }}"
 
 - name: Сгенерировать хэш пароля Jupyter
-  ansible.builtin.command: "{{ jupyter_venv }}/bin/python -c 'from notebook.auth import passwd; print(passwd(\"{{ jupyter_password }}\"))'"
+  ansible.builtin.command: 
+    "{{ jupyter_venv }}/bin/python -c 'from jupyter_server.auth import passwd; print(passwd(\"{{ jupyter_password }}\"))'"
   register: jupyter_password_hash
   changed_when: false
 
@@ -48,6 +49,7 @@
     mode: '0600'
     owner: "{{ jupyter_user }}"
     group: "{{ jupyter_user }}"
+  
 
 - name: Создать systemd unit файл для Jupyter Notebook
   ansible.builtin.copy:
@@ -76,6 +78,9 @@
     enabled: yes
     state: started
     daemon_reload: true
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
 
 - name: Открыть порт {{ jupyter_port }} в ufw (если ufw установлен)
   when: "'ufw' in ansible_facts.packages"
