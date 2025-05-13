@@ -1,25 +1,15 @@
 ---
-- name: Create user for ollama
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.users
-  vars:
-    users_host:
-        ollama:
-          uid: "{{ ollama_user_uid }}"
-          gid: "{{ ollama_user_gid }}"
-          password: "!"
-          shell: /bin/false
-          home: "{{ ollama_homedir }}"
-  tags: [ install, users ]
-
-- name: Set owner for ollama home
+- name: Create folder for models
   ansible.builtin.file:
-    path: "{{ ollama_homedir }}"
+    path: "{{ ollama_models }}"
     state: directory
-    owner: "{{ ollama_user_uid }}"
-    group: "{{ ollama_user_gid }}"
-    recurse: true
-  tags: [ install, users ]
+    owner: "{{ ollama_user }}"
+    group: "{{ ollama_user }}"
+    mode: 0775
+  loop:
+    - "{{ ollama_home }}"
+    - "{{ ollama_home }}/models"
+  tags: [ install ]
 
 - name: Check exists installed Ollama
   ansible.builtin.stat:

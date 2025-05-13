@@ -1,8 +1,7 @@
 ollama_force  : false         # Обновление / принудительная установка
 ollama_version: "{{ omit }}"  # Указание конкретной версии Ollama
-ollama_homedir: /opt/ollama
-ollama_user_uid: 3000
-ollama_user_gid: 3000
+ollama_models: /opt/apps/ollama/models
+ollama_user: "{{ common_user }}"
 
 # Описание смотри на https://hostkey.ru/documentation/technical/gpu/ollama/#переменные-окружения
 # OLLAMA_DEBUG	Выводить дополнительную информацию о отладке (например, OLLAMA_DEBUG=1)
@@ -25,3 +24,4 @@ ollama_user_gid: 3000
     
 ollama_env:
     - OLLAMA_HOST=0.0.0.0:11434
+    - OLLAMA_MODELS={{ ollama_models }}
