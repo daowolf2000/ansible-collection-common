@@ -6,9 +6,6 @@
     owner: "{{ ollama_user }}"
     group: "{{ ollama_user }}"
     mode: 0775
-  loop:
-    - "{{ ollama_home }}"
-    - "{{ ollama_home }}/models"
   tags: [ install ]
 
 - name: Check exists installed Ollama
