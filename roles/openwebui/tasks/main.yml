@@ -1,40 +1,40 @@
 ---
-- name: Check Nvidia present
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.x
-    tasks_from: nvidia_present.yml
-
-- name: Get userinfo
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.x
-    tasks_from: userinfo.yml
-  vars:
-    x_user: "{{ openwebui_user }}"
-
+- name: Check Nvidia lspci present
+  ansible.builtin.shell: |
+    set -o pipefail ; lspci | grep -i nvidia
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: result
+  failed_when: false
+    
+- name: Set variable nvidia_output
+  ansible.builtin.set_fact:
+    nvidia_present: "{{ true if result.stdout != '' else false }}"
 
 - name: Create folder
   ansible.builtin.file:
-    name: "{{ openwebui_path }}/data"
+    name: "{{ openwebui_home }}/data"
     state: directory
-    owner: "{{ userinfo.uid }}"
-    group: "{{ userinfo.gid }}"
+    owner: "{{ openwebui_user }}"
+    group: "{{ openwebui_user }}"
     mode: "0770"
 
 - name: Create docker-compose.yml
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: "{{ openwebui_path }}/docker-compose.yml"
-    owner   : "{{ userinfo.uid }}"
-    group   : "{{ userinfo.gid }}"
+    dest: "{{ openwebui_home }}/docker-compose.yml"
+    owner   : "{{ openwebui_user }}"
+    group   : "{{ openwebui_user }}"
     mode: "0644"
   notify: Restart openwebui
 
 - name: Create default.env file
   ansible.builtin.copy:
     content : "{{ openwebui_env }}"
-    dest    : "{{ openwebui_path }}/default.env"
-    owner   : "{{ userinfo.uid }}"
-    group   : "{{ userinfo.gid }}"
+    dest    : "{{ openwebui_home }}/default.env"
+    owner   : "{{ openwebui_user }}"
+    group   : "{{ openwebui_user }}"
     mode    : "0660"
   notify: Restart openwebui
 

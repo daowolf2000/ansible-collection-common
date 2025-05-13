@@ -1,4 +1,4 @@
-openwebui_user   : "{{ common_user }}"  # Пользователь из под которого будет запускаться приложение
-openwebui_path   : "/opt/openwebui"     # Каталог установки приложения
+openwebui_user   : "{{ common_user | d(ansible_user_id) }}"  # Пользователь из под которого будет запускаться приложение
+openwebui_home   : "/opt/apps/openwebui"     # Каталог установки приложения
 openwebui_env    : ""                   # Переменные окружения для openwebui
 openwebui_port   : "3000"               # Порт по которому будет доступен openwebui
