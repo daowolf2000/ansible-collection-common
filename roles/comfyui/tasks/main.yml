@@ -24,6 +24,7 @@
         repo: https://github.com/comfyanonymous/ComfyUI.git
         dest: "{{ comfyui_path }}"
         version: "{{ comfyui_version }}"
+        force: true 
       notify: Restart comfyui
 
     - name: Install PyTorch, torchvision, torchaudio with CUDA
