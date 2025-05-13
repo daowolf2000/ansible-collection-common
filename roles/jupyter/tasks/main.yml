@@ -1,60 +1,85 @@
 ---
-- name: Get userinfo
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.x
-    tasks_from: userinfo.yml
-  vars:
-    x_user: "{{ jupyter_user }}"
+- name: Установить необходимые пакеты
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+    update_cache: yes
 
-- name: Create custom docker image
-  when: jupyter_requirements_content is defined and jupyter_requirements_content != omit 
-  block:
+- name: Установить Jupyter Notebook и jupyter в виртуальное окружение
+  pip:
+    name:
+      - notebook
+      - jupyter
+    virtualenv: "{{ jupyter_venv }}"
 
-    - name: Create folder
-      ansible.builtin.file:
-        path: "{{ jupyter_path }}"
-        state: directory
-        owner: "{{ userinfo.uid }}"
-        group: "{{ userinfo.gid }}"
-        mode: "0770"
+- name: Сгенерировать хэш пароля Jupyter
+  command: "{{ jupyter_venv }}/bin/python -c 'from notebook.auth import passwd; print(passwd(\"{{ jupyter_password }}\"))'"
+  register: jupyter_password_hash
+  changed_when: false
 
-    - name: Copy requirements.txt
-      ansible.builtin.copy:
-        content: "{{ jupyter_requirements_content }}"
-        dest: "{{ jupyter_path }}/requirements.txt"
-        owner: "{{ userinfo.uid }}"
-        group: "{{ userinfo.gid }}"
-        mode: "0660"
-      register: res_req
+- name: Создать директорию для Jupyter
+  file:  
+    path: "{{ jupyter_home }}"
+    state: directory
+    mode: '0770'
+    owner: "{{ jupyter_user }}"
+    group: "{{ jupyter_user }}"
 
-    - name: Copy Dockerfile
-      ansible.builtin.template:
-        src: "Dockerfile.j2"
-        dest: "{{ jupyter_path }}/Dockerfile"
-        owner: "{{ userinfo.uid }}"
-        group: "{{ userinfo.gid }}"
-        mode: "0660"
-      register: res_dfile
 
-    - name: Build Image
-      when: res_req is changed or res_dfile is changed
-      community.docker.docker_image:
-        name: "custom_jupyter:latest"
-        build:
-          path: "{{ jupyter_path }}"
-        source: build
-      register: res_build
+- name: Создать директорию для конфигурации Jupyter
+  file:
+    path: "{{ jupyter_home }}/.jupyter"
+    state: directory
+    mode: '0700'
+    owner: "{{ jupyter_user }}"
+    group: "{{ jupyter_user }}"
 
-- name: Install Jupyter
-  ansible.builtin.include_role:
-    name: daowolf2000.linux.x
-    tasks_from: compose_app
-  vars:
-    x_name: jupyter
-    x_user: "{{ jupyter_user }}"
-    x_path: "{{ jupyter_path }}"
-    x_env:  "{{ jupyter_env }}"
-    x_content: "{{ lookup('template', 'jupyter.j2') }}"
-    x_force_restart: "{{ res_build.changed | d(false) }}"          # Принудительный перезапуск если изменился образ
+- name: Создать конфиг-файл Jupyter с паролем и настройками
+  copy:
+    dest: "{{ jupyter_home }}/.jupyter/jupyter_notebook_config.py"
+    content: |
+      c = get_config()
+      c.NotebookApp.password = u'{{ jupyter_password_hash.stdout }}'
+      c.NotebookApp.ip = '0.0.0.0'
+      c.NotebookApp.open_browser = False
+      c.NotebookApp.port = {{ jupyter_port }}
+    mode: '0600'
+    owner: "{{ jupyter_user }}"
+    group: "{{ jupyter_user }}"
 
-# TODO: https://jupyter-docker-stacks.readthedocs.io/en/latest/using/recipes.html#using-mamba-install-recommended-or-pip-install-in-a-child-docker-image
+- name: Создать systemd unit файл для Jupyter Notebook
+  copy:
+    dest: /etc/systemd/system/jupyter.service
+    content: |
+      [Unit]
+      Description=Jupyter Notebook Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      User={{ jupyter_user }}
+      Group={{ jupyter_user }}
+      WorkingDirectory={{ jupyter_home }}
+      ExecStart={{ jupyter_venv }}/bin/python -m notebook --config={{ jupyter_home }}/.jupyter/jupyter_notebook_config.py
+      Restart=always
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Включить и запустить сервис Jupyter
+  systemd:
+    name: jupyter.service
+    enabled: yes
+    state: started
+    daemon_reload: true
+
+- name: Открыть порт {{ jupyter_port }} в ufw (если ufw установлен)
+  when: "'ufw' in ansible_facts.packages"
+  ufw:
+    rule: allow
+    port: "{{ jupyter_port }}"
+    proto: tcp
