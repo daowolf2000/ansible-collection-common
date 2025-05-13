@@ -1,6 +1,6 @@
 ---
 - name: Установить необходимые пакеты
-  apt:
+  ansible.builtin.apt:
     name:
       - python3
       - python3-pip
@@ -8,19 +8,19 @@
     update_cache: yes
 
 - name: Установить Jupyter Notebook и jupyter в виртуальное окружение
-  pip:
+  ansible.builtin.pip:
     name:
       - notebook
       - jupyter
     virtualenv: "{{ jupyter_venv }}"
 
 - name: Сгенерировать хэш пароля Jupyter
-  command: "{{ jupyter_venv }}/bin/python -c 'from notebook.auth import passwd; print(passwd(\"{{ jupyter_password }}\"))'"
+  ansible.builtin.command: "{{ jupyter_venv }}/bin/python -c 'from notebook.auth import passwd; print(passwd(\"{{ jupyter_password }}\"))'"
   register: jupyter_password_hash
   changed_when: false
 
 - name: Создать директорию для Jupyter
-  file:  
+  ansible.builtin.file:  
     path: "{{ jupyter_home }}"
     state: directory
     mode: '0770'
@@ -29,7 +29,7 @@
 
 
 - name: Создать директорию для конфигурации Jupyter
-  file:
+  ansible.builtin.file:
     path: "{{ jupyter_home }}/.jupyter"
     state: directory
     mode: '0700'
@@ -37,7 +37,7 @@
     group: "{{ jupyter_user }}"
 
 - name: Создать конфиг-файл Jupyter с паролем и настройками
-  copy:
+  ansible.builtin.copy:
     dest: "{{ jupyter_home }}/.jupyter/jupyter_notebook_config.py"
     content: |
       c = get_config()
@@ -50,7 +50,7 @@
     group: "{{ jupyter_user }}"
 
 - name: Создать systemd unit файл для Jupyter Notebook
-  copy:
+  ansible.builtin.copy:
     dest: /etc/systemd/system/jupyter.service
     content: |
       [Unit]
@@ -71,7 +71,7 @@
     mode: '0644'
 
 - name: Включить и запустить сервис Jupyter
-  systemd:
+  ansible.builtin.systemd:
     name: jupyter.service
     enabled: yes
     state: started
@@ -79,7 +79,7 @@
 
 - name: Открыть порт {{ jupyter_port }} в ufw (если ufw установлен)
   when: "'ufw' in ansible_facts.packages"
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ jupyter_port }}"
     proto: tcp
