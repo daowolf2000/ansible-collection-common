@@ -1,0 +1,16 @@
+[Unit]
+Description=Docker compose app service for immich 
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User={{ immich_user }}
+WorkingDirectory={{ immich_home }}
+ExecStartPre=/usr/bin/docker compose -f docker-compose.yml down
+ExecStart=/usr/bin/docker compose -f docker-compose.yml up
+ExecStop=/usr/bin/docker compose -f docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target

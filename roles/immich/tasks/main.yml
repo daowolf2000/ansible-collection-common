@@ -1,0 +1,42 @@
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ immich_user }}"
+    groups: docker
+    append: true
+
+- name: Create folders
+  ansible.builtin.file:
+    path: "{{ immich_folder_item }}"
+    state: directory
+    owner: "{{ immich_user }}"
+    group: "{{ immich_user }}"
+    mode: "0770"
+  loop:
+    - "{{ immich_home }}"
+    - "{{ immich_home }}/{{ immich_upload_location }}"
+    - "{{ immich_home }}/{{ immich_db_data_location }}"
+  loop_control:
+    loop_var: immich_folder_item
+    
+- name: Create files for docker compose
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ immich_home }}/{{ item }}"
+    owner: "{{ immich_user }}"
+    group: "{{ immich_user }}"
+    mode: "0660"
+  loop:
+    - docker-compose.yml
+    - immich.env
+    - hwaccel.ml.yml
+    - hwaccel.transcoding.yml
+  notify: Restart immich
+
+- name: Create service
+  ansible.builtin.template:
+    src: immich.service
+    dest: /etc/systemd/system/immich.service
+    owner: "{{ immich_user }}"
+    group: "{{ immich_user }}"
+    mode: "0660"
+  notify: Restart immich

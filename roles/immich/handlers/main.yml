@@ -1,0 +1,6 @@
+- name: Restart immich
+  ansible.builtin.systemd:
+    name: immich
+    state: restarted
+    enabled: true
+    daemon_reload: true
