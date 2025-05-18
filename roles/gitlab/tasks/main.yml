@@ -1,0 +1,33 @@
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ gitlab_user }}"
+    groups: docker
+    append: true
+
+- name: Create folders
+  ansible.builtin.file:
+    path: "{{ gitlab_home }}"
+    state: directory
+    owner: "{{ gitlab_user }}"
+    group: "{{ gitlab_user }}"
+    mode: "0770"
+    
+- name: Create files for docker compose
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ gitlab_home }}/{{ item }}"
+    owner: "{{ gitlab_user }}"
+    group: "{{ gitlab_user }}"
+    mode: "0660"
+  loop:
+    - docker-compose.yml
+  notify: Restart gitlab
+
+- name: Create service
+  ansible.builtin.template:
+    src: gitlab.service
+    dest: /etc/systemd/system/gitlab.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart gitlab

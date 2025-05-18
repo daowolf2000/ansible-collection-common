@@ -1,0 +1,28 @@
+services:
+  gitlab:
+    image: {{ gitlab_image }}
+    container_name: gitlab
+    restart: always
+    hostname: '{{ gitlab_hostname }}'
+{% if gitlab_omnibus_config | length > 0 %}
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+{% for param in gitlab_omnibus_config %}        
+        {{ param }}
+{% endfor %}
+{% endif %}
+    ports:
+      - '{{ gitlab_port_http }}:80'
+      - '{{ gitlab_port_https }}:443'
+      - '{{ gitlab_port_ssh }}:22'
+    volumes:
+      - '{{ gitlab_home }}/config:/etc/gitlab'
+      - '{{ gitlab_home }}/logs:/var/log/gitlab'
+      - '{{ gitlab_home }}/data:/var/opt/gitlab'
+    shm_size: '256m'
+    deploy:
+      resources:
+        limits:
+          memory: {{ gitlab_mem_limit }}
+        reservations:
+          memory: {{ gitlab_mem_rezerv }}

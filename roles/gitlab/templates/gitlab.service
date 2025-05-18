@@ -1,0 +1,16 @@
+[Unit]
+Description=Docker compose app service for gotlab 
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+User={{ gitlab_user }}
+WorkingDirectory={{ gitlab_home }}
+ExecStartPre=/usr/bin/docker compose -f docker-compose.yml down
+ExecStart=/usr/bin/docker compose -f docker-compose.yml up
+ExecStop=/usr/bin/docker compose -f docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target

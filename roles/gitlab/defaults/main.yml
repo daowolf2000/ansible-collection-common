@@ -1,0 +1,14 @@
+gitlab_user: "{{ common_user | d(ansible_user_id) }}"
+gitlab_home: /opt/apps/gitlab
+
+gitlab_hostname   : gitlab.example.com
+gitlab_port_http  : 2080
+gitlab_port_https : 2443
+gitlab_port_ssh   : 2022
+
+gitlab_mem_limit: 12g
+gitlab_mem_rezerv: 6g
+
+
+gitlab_image: gitlab/gitlab-ce:18.0.0-ce.0
+gitlab_omnibus_config: []  # Add any other gitlab.rb configuration here, each on its own line
