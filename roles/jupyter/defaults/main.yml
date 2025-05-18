@@ -1,5 +1,5 @@
 jupyter_password: "your_secure_password"  # Задайте желаемый пароль
-jupyter_user: "{{ ansible_user_id }}"
-jupyter_home: "{{ ansible_env.HOME }}"
+jupyter_user: "{{ common_user | d(ansible_user_id) }}"
+jupyter_home: /opt/apps/jupyter
 jupyter_port: 8888
 jupyter_venv: "{{ jupyter_home }}/venv"
