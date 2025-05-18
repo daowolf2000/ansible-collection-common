@@ -54,7 +54,7 @@
 
 - name: Install service
   ansible.builtin.template:
-    src: comfyui.service.j2
+    src: comfyui.service
     dest: /etc/systemd/system/comfyui.service
     owner: root
     group: root
