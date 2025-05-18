@@ -7,12 +7,6 @@
 > [!TIP]
 > Все используемые параметры ролей подробно описаны в файлах `defaults/main.yml`. Заголовок каждой роли является ссылкой, ведущей на соответствующий `defaults/main.yml`
 
-### [common](roles/common/defaults/main.yml)
-Роль с общими переменными и handlers. В ролях где они используются необходимо создать `meta/main.yml` со следующим содержанием:
-```
-dependencies:
-  - daowolf2000.linux.common
-```
 ### [docker](roles/docker/defaults/main.yml)
 
 - Установка и настройка Docker CE 
