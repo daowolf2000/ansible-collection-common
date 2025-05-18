@@ -1,4 +1,4 @@
-ARG BASE_IMAGE={{ jupyter_image }}
+ARG BASE_IMAGE={{ jupyter_docker_image }}
 FROM $BASE_IMAGE
 
 RUN mamba install --yes 'flake8' && \

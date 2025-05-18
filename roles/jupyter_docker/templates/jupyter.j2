@@ -1,13 +1,13 @@
 version: '3.8'
 services:
     jupyter:
-{% if jupyter_requirements_content is defined and jupyter_requirements_content != omit %}
+{% if jupyter_docker_requirements_content is defined and jupyter_docker_requirements_content != omit %}
         image: custom_jupyter:latest
 {% else %}
-        image: {{ jupyter_image }}
+        image: {{ jupyter_docker_image }}
 {% endif %}
         ports:
-        - "{{ jupyter_port }}:8888"
+        - "{{ jupyter_docker_port }}:8888"
         volumes:
-        - {{ jupyter_notebook }}:/home/jovyan/work
-        command: start-notebook.sh {{ jupyter_opts }}
+        - {{ jupyter_docker_notebook }}:/home/jovyan/work
+        command: start-notebook.sh {{ jupyter_docker_opts }}

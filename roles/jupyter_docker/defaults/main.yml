@@ -1,21 +1,21 @@
-jupyter_path        : "/opt/jupyter"          # Каталог установки
-jupyter_user        : "{{ common_user | d(ansible_user_id) }}"     # Пользователь из под которого запускается jupyter
+jupyter_docker_path        : "/opt/jupyter"          # Каталог установки
+jupyter_docker_user        : "{{ common_user | d(ansible_user_id) }}"     # Пользователь из под которого запускается jupyter
 
-jupyter_image       : "quay.io/jupyter/pytorch-notebook:cuda12-ubuntu-24.04"  # Имя базового docker-образа
-jupyter_port        : "8888"                  # Порт приложения
-jupyter_notebook    : "./notebooks"           # Каталог для хранения notebooks
+jupyter_docker_image       : "quay.io/jupyter/pytorch-notebook:cuda12-ubuntu-24.04"  # Имя базового docker-образа
+jupyter_docker_port        : "8888"                  # Порт приложения
+jupyter_docker_notebook    : "./notebooks"           # Каталог для хранения notebooks
 
 
 # Содержимое requirements.txt файла для установки дополнительных пакетов в образ jupyter (используется mamba)
-# В этом случае на основе {{ jupyter_image }} будет создан и использован образ custom_jupyter:latest
-jupyter_requirements_content : "{{ omit }}"
+# В этом случае на основе {{ jupyter_docker_image }} будет создан и использован образ custom_jupyter:latest
+jupyter_docker_requirements_content : "{{ omit }}"
 
 # Параметры передаваемые Jupyter server. Подробнее см:
 # https://jupyter-docker-stacks.readthedocs.io/en/latest/using/common.html
 # https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html
-jupyter_opts: "--NotebookApp.token=''"
+jupyter_docker_opts: "--NotebookApp.token=''"
 
 # Переменные окружения (см. https://jupyter-docker-stacks.readthedocs.io/en/latest/using/common.html)
-jupyter_env : |
+jupyter_docker_env : |
   RESTARTABLE=yes
   GEN_CERT=false

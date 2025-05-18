@@ -4,15 +4,15 @@
     name: daowolf2000.linux.x
     tasks_from: userinfo.yml
   vars:
-    x_user: "{{ jupyter_user }}"
+    x_user: "{{ jupyter_docker_user }}"
 
 - name: Create custom docker image
-  when: jupyter_requirements_content is defined and jupyter_requirements_content != omit 
+  when: jupyter_docker_requirements_content is defined and jupyter_docker_requirements_content != omit 
   block:
 
     - name: Create folder
       ansible.builtin.file:
-        path: "{{ jupyter_path }}"
+        path: "{{ jupyter_docker_path }}"
         state: directory
         owner: "{{ userinfo.uid }}"
         group: "{{ userinfo.gid }}"
@@ -20,8 +20,8 @@
 
     - name: Copy requirements.txt
       ansible.builtin.copy:
-        content: "{{ jupyter_requirements_content }}"
-        dest: "{{ jupyter_path }}/requirements.txt"
+        content: "{{ jupyter_docker_requirements_content }}"
+        dest: "{{ jupyter_docker_path }}/requirements.txt"
         owner: "{{ userinfo.uid }}"
         group: "{{ userinfo.gid }}"
         mode: "0660"
@@ -30,7 +30,7 @@
     - name: Copy Dockerfile
       ansible.builtin.template:
         src: "Dockerfile.j2"
-        dest: "{{ jupyter_path }}/Dockerfile"
+        dest: "{{ jupyter_docker_path }}/Dockerfile"
         owner: "{{ userinfo.uid }}"
         group: "{{ userinfo.gid }}"
         mode: "0660"
@@ -41,7 +41,7 @@
       community.docker.docker_image:
         name: "custom_jupyter:latest"
         build:
-          path: "{{ jupyter_path }}"
+          path: "{{ jupyter_docker_path }}"
         source: build
       register: res_build
 
@@ -51,9 +51,9 @@
     tasks_from: compose_app
   vars:
     x_name: jupyter
-    x_user: "{{ jupyter_user }}"
-    x_path: "{{ jupyter_path }}"
-    x_env:  "{{ jupyter_env }}"
+    x_user: "{{ jupyter_docker_user }}"
+    x_path: "{{ jupyter_docker_path }}"
+    x_env:  "{{ jupyter_docker_env }}"
     x_content: "{{ lookup('template', 'jupyter.j2') }}"
     x_force_restart: "{{ res_build.changed | d(false) }}"          # Принудительный перезапуск если изменился образ
 
