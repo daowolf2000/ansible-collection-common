@@ -1,7 +1,7 @@
 ollama_force  : false         # Обновление / принудительная установка
 ollama_version: "{{ omit }}"  # Указание конкретной версии Ollama
 ollama_models: /opt/apps/ollama/models
-ollama_user: "{{ common_user }}"
+ollama_user: "{{ common_user | d(ansible_user_id) }}"
 
 # Описание смотри на https://hostkey.ru/documentation/technical/gpu/ollama/#переменные-окружения
 # OLLAMA_DEBUG	Выводить дополнительную информацию о отладке (например, OLLAMA_DEBUG=1)

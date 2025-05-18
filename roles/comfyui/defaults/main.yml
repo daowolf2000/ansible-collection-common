@@ -1,4 +1,4 @@
-comfyui_user: "{{ common_user }}"
+comfyui_user: "{{ common_user | d(ansible_user_id) }}"
 comfyui_path: /opt/apps/comfyui
 comfyui_version: "{{ omit }}"
 comfyui_cuda_version: "122"

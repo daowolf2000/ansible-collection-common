@@ -2,7 +2,7 @@ ssh_proxy_opts: "-nNT -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o Gate
 
 # Пользователь от которого будут устанавливаться ssh proxy соединения
 # Также этот пользователь будет хранить ключи для установки ssh соединений
-ssh_proxy_user: "{{ common_user }}" 
+ssh_proxy_user: "{{ common_user | d(ansible_user_id) }}" 
 
 ssh_proxy_autokey: true         # Автоматическая генерация и управление ключами ssh
 ssh_proxy_add_known_hosts: true # Добавлять sshd хост в known_hosts

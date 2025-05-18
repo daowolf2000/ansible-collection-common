@@ -1,4 +1,4 @@
-noip_user   : "{{ common_user }}"  
+noip_user   : "{{ common_user | d(ansible_user_id) }}" 
 noip_version: latest
 
 noip_ddns_username: "{{ lookup('env', 'NOIP_USERNAME') }}"  # Укажите ваш DDNS ключ username

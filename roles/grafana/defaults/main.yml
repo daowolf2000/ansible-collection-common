@@ -1,4 +1,4 @@
-grafana_user: "{{ common_user }}"
+grafana_user: "{{ common_user | d(ansible_user_id) }}"
 grafana_path: /opt/apps/grafana
 grafana_image: "grafana/grafana-oss:latest"
 grafana_port: 3000

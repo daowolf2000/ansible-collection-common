@@ -1,5 +1,5 @@
 jupyter_path        : "/opt/jupyter"          # Каталог установки
-jupyter_user        : "{{ common_user }}"     # Пользователь из под которого запускается jupyter
+jupyter_user        : "{{ common_user | d(ansible_user_id) }}"     # Пользователь из под которого запускается jupyter
 
 jupyter_image       : "quay.io/jupyter/pytorch-notebook:cuda12-ubuntu-24.04"  # Имя базового docker-образа
 jupyter_port        : "8888"                  # Порт приложения
