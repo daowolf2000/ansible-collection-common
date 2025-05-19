@@ -1,5 +1,6 @@
 immich_user: "{{ common_user | d(ansible_usesr_id) }}"
 immich_home: /opt/apps/immich
+immich_port: 2283
 
 immich_hwaccel_transcoding: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
 immich_hwaccel_ml: cpu # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn]
@@ -11,3 +12,7 @@ immich_db_password: postgres
 immich_db_username: postgres
 immich_db_database_name: immich
 immich_db_data_location: ./postgres
+
+immich_optimizer_enable: true
+immich_optimizer_image: "ghcr.io/miguelangel-nubla/immich-upload-optimizer:latest"
+immich_optimizer_profile: default

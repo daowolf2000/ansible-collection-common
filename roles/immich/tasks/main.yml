@@ -15,10 +15,11 @@
     - "{{ immich_home }}"
     - "{{ immich_home }}/{{ immich_upload_location }}"
     - "{{ immich_home }}/{{ immich_db_data_location }}"
+    - "{{ immich_home }}/optimizer/default"
   loop_control:
     loop_var: immich_folder_item
     
-- name: Create files for docker compose
+- name: Create files for immich (1/2)
   ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ immich_home }}/{{ item }}"
@@ -30,7 +31,19 @@
     - immich.env
     - hwaccel.ml.yml
     - hwaccel.transcoding.yml
+    - optimizer/default/handbrake.json
+    - optimizer/default/tasks.yaml
   notify: Restart immich
+
+    
+- name: Create files for immich (2/2)
+  when: immich_optimizer_enable
+  ansible.builtin.template:
+    src: "optimizer/default/heic2jxl.sh"
+    dest: "{{ immich_home }}/optimizer/default/heic2jxl.sh"
+    owner: "{{ immich_user }}"
+    group: "{{ immich_user }}"
+    mode: "0755"
 
 - name: Create service
   ansible.builtin.template:
