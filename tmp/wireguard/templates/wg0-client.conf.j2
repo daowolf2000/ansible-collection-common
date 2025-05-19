@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ client_private_key }}
+Address = {{ wireguard_client_ip }}/24
+DNS = 192.168.1.1  # IP вашего домашнего роутера или DNS
+
+[Peer]
+PublicKey = {{ server_public_key }}
+Endpoint = {{ vpn_server_ip }}:{{ wireguard_server_port }}
+AllowedIPs = {{ wireguard_vpn_network }}, {{ wireguard_home_lan_network }}
+PersistentKeepalive = 25

@@ -1,0 +1,82 @@
+- name: Setup WireGuard VPN Server and Client
+  hosts: all
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+  vars:
+    vpn_server_ip: "{{ hostvars['vpn-server'].ansible_host }}"
+  tasks:
+
+  - name: Install WireGuard package
+    ansible.builtin.apt:
+      name: wireguard
+      state: present
+      update_cache: yes
+      cache_valid_time: 86400
+
+  - name: Enable IP forwarding sysctl
+    ansible.builtin.sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      state: present
+      reload: yes
+
+  - name: Generate private key if not exists
+    command: wg genkey
+    register: private_key
+    changed_when: false
+    args:
+      creates: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+
+  - name: Save private key
+    copy:
+      content: "{{ private_key.stdout }}"
+      dest: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+      mode: 0600
+    when: private_key.stdout != ""
+
+  - name: Read private key
+    slurp:
+      src: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+    register: private_key_file
+
+  - set_fact:
+      private_key_decoded: "{{ private_key_file.content | b64decode }}"
+
+  - name: Generate public key from private key
+    command: "echo '{{ private_key_decoded }}' | wg pubkey"
+    register: public_key
+    changed_when: false
+
+  - set_fact:
+      public_key_decoded: "{{ public_key.stdout }}"
+
+  - name: Set keys facts per host
+    set_fact:
+      server_private_key: "{{ private_key_decoded if inventory_hostname == 'vpn-server' else '' }}"
+      server_public_key: "{{ public_key_decoded if inventory_hostname == 'vpn-server' else '' }}"
+      client_private_key: "{{ private_key_decoded if inventory_hostname == 'home-client' else '' }}"
+      client_public_key: "{{ public_key_decoded if inventory_hostname == 'home-client' else '' }}"
+
+  - name: Wait for all hosts keys facts
+    meta: flush_handlers
+
+  - name: Template WireGuard config on server
+    template:
+      src: wg0-server.conf.j2
+      dest: /etc/wireguard/wg0.conf
+      mode: 0600
+    when: "'vpn-server' in inventory_hostname"
+
+  - name: Template WireGuard config on client
+    template:
+      src: wg0-client.conf.j2
+      dest: /etc/wireguard/wg0.conf
+      mode: 0600
+    when: "'home-client' in inventory_hostname"
+
+  - name: Start and enable WireGuard
+    systemd:
+      name: wg-quick@wg0
+      state: started
+      enabled: yes
