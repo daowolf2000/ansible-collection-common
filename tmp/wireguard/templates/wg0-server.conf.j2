@@ -1,0 +1,13 @@
+[Interface]
+PrivateKey = {{ server_private_key }}
+Address = {{ wireguard_server_ip }}/24
+ListenPort = {{ wireguard_server_port }}
+SaveConfig = true
+
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+[Peer]
+PublicKey = {{ client_public_key }}
+AllowedIPs = {{ wireguard_client_ip }}/32, {{ wireguard_home_lan_network }}
+PersistentKeepalive = 25

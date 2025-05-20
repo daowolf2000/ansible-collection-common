@@ -1,0 +1,14 @@
+vpn_server_ip: "{{ hostvars['vpn-server'].ansible_host }}"
+
+wireguard_vpn_network: "10.0.0.0/24"
+wireguard_server_ip: "10.0.0.1"
+wireguard_server_port: 51820
+wireguard_client_ip: "10.0.0.2"
+wireguard_home_lan_network: "192.168.1.0/24"  # замените на вашу домашнюю сеть
+
+wireguard_server:
+
+
+wireguard_client:
+  - name: home
+    ips:   10.0.0.2

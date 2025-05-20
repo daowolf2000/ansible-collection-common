@@ -10,6 +10,22 @@
 name: immich
 
 services:
+
+{% if immich_optimizer_enable %}
+  # See: https://github.com/miguelangel-nubla/immich-upload-optimizer/tree/main
+  immich-upload-optimizer:
+    container_name: immich_optimizer
+    image: {{ immich_optimizer_image }}
+    ports:
+      - "{{ immich_port }}:2283"
+    environment:
+      - IUO_UPSTREAM=http://immich-server:2283
+    volumes:
+      - ./optimizer/{{ immich_optimizer_profile }}:/etc/immich-upload-optimizer/config
+    depends_on:
+      - immich-server
+{% endif %}
+
   immich-server:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
@@ -22,8 +38,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - immich.env
+{% if immich_optimizer_enable == false %}
     ports:
-      - '2283:2283'
+      - '{{ immich_port }}:2283'
+{% endif %}
     depends_on:
       - redis
       - database

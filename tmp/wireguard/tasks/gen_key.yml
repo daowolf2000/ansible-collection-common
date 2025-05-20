@@ -1,0 +1,26 @@
+  - name: Generate private key if not exists
+    command: wg genkey
+    register: private_key
+    changed_when: false
+    args:
+      creates: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+
+  - name: Save private key
+    copy:
+      content: "{{ private_key.stdout }}"
+      dest: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+      mode: 0600
+    when: private_key.stdout != ""
+
+  - name: Read private key
+    slurp:
+      src: "/etc/wireguard/privatekey_{{ inventory_hostname }}"
+    register: private_key_file
+
+  - set_fact:
+      private_key_decoded: "{{ private_key_file.content | b64decode }}"
+
+  - name: Generate public key from private key
+    command: "echo '{{ private_key_decoded }}' | wg pubkey"
+    register: public_key
+    changed_when: false
