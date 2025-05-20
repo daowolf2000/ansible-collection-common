@@ -1,13 +1,4 @@
 ---
-- name: Create folder for models
-  ansible.builtin.file:
-    path: "{{ ollama_models }}"
-    state: directory
-    owner: "{{ ollama_user }}"
-    group: "{{ ollama_user }}"
-    mode: 0775
-  tags: [ install ]
-
 - name: Check exists installed Ollama
   ansible.builtin.stat:
     path: "{{ item }}"
@@ -31,7 +22,16 @@
     executable: /bin/bash
   changed_when: true
   tags: [ install, update ]
-  
+
+- name: Create folder for models
+  ansible.builtin.file:
+    path: "{{ ollama_models }}"
+    state: directory
+    owner: "ollama"
+    group: "ollama"
+    mode: 0775
+  tags: [ install ]
+
 - name: Create directory for override.conf
   ansible.builtin.file:
     path: /etc/systemd/system/ollama.service.d
@@ -53,3 +53,8 @@
   notify: Restart ollama
   tags: [ install, config ]
 
+- name: Add group ollama to user {{ ollama_user }}
+  ansible.builtin.user:
+    name: "{{ ollama_user }}"
+    groups: ollama
+    append: true
