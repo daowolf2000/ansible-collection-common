@@ -6,14 +6,17 @@
     regexp: '^(deb .* {{ ansible_distribution_release }} main).*$'
     replace: '\1 {{ package_repo }}'
   register: _repo_changed
-  tags: [print_action]
 
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
+    update_cache_retries: 3
+    update_cache_retry_max_delay: 3
   when: _repo_changed is changed
 
 - name: Install package
   ansible.builtin.apt:
-    name: "{{ package_all + package_group + package_host }}"
-  tags: [print_action]
+    name: "{{ item }}"
+    lock_timeout: 600
+  loop: "{{ package_all + package_group + package_host }}"
+
