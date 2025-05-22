@@ -1,0 +1,46 @@
+---
+- name: Установить пакеты locales и locales-all
+  ansible.builtin.apt:
+    name:
+      - locales
+      - locales-all
+    state: present
+    update_cache: true
+    cache_valid_time: 86400 # 1 day
+
+- name: Раскомментировать нужные локали в /etc/locale.gen
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    regexp: "^# *{{ item }}"
+    line: "{{ item }}"
+    state: present
+    backrefs: yes
+  loop: "{{ locales_to_enable }}"
+
+- name: Сгенерировать локали
+  ansible.builtin.command: locale-gen
+  args:
+    creates: "/usr/lib/locale/{{ locale_default }}"
+
+- name: Установить локаль по умолчанию в /etc/default/locale
+  ansible.builtin.copy:
+    dest: /etc/default/locale
+    content: "LANG={{ locale_default }}\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+# - name: Проверить текущие локали (для отладки)
+#   command: locale
+#   register: locale_output
+#   changed_when: false
+
+# - name: Отобразить текущие локали (для отладки)
+#   debug:
+#     msg: "{{ locale_output.stdout_lines }}"
+#     verbosity: 1
+
+- name: Конфигурируем пользователей
+  ansible.builtin.include_tasks: user_cfg.yml
+  when: {{ locale_user_config }}
+

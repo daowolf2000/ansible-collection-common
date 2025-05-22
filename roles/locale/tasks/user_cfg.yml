@@ -1,0 +1,47 @@
+- name: Получить список всех пользователей с домашними каталогами и UID >= 1000 или root
+  ansible.builtin.getent:
+    database: passwd
+  register: passwd_entries
+
+- name: Отфильтровать пользователей с UID >= 1000 и root (UID 0)
+  ansible.builtin.set_fact:
+    filtered_users: >-
+      {{
+        passwd_entries.passwd
+        | selectattr('uid', 'ge', 1000)
+        | list
+        + passwd_entries.passwd
+        | selectattr('uid', 'equalto', 0)
+        | list
+      }}
+
+- name: Собрать список домашних каталогов отфильтрованных пользователей
+  ansible.builtin.set_fact:
+    user_homes: "{{ filtered_users | map(attribute='dir') | list }}"
+
+- name: Добавить загрузку локали в ~/.profile всех отфильтрованных пользователей
+  ansible.builtin.lineinfile:
+    path: "{{ item }}/.profile"
+    insertafter: EOF
+    line: |
+      if [ -f /etc/default/locale ]; then
+          . /etc/default/locale
+      fi
+    create: yes
+    state: present
+  loop: "{{ user_homes }}"
+  become: yes
+  become_user: "{{ lookup('ansible.builtin.file', item).owner }}"
+  when: item is directory
+
+
+- name: Проверить и удалить переопределения локали в ~/.bashrc и ~/.bash_profile
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^(export )?(LANG|LANGUAGE|LC_ALL)='
+    state: absent
+  loop:
+    - "{{ ansible_env.HOME }}/.bashrc"
+    - "{{ ansible_env.HOME }}/.bash_profile"
+  ignore_errors: yes
+  become: no

@@ -1,0 +1,5 @@
+locale_default: "ru_RU.UTF-8"
+locales_to_enable:
+  - "ru_RU.UTF-8 UTF-8"
+  - "en_US.UTF-8 UTF-8"
+locale_user_config: true
