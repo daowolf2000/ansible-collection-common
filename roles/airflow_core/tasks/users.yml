@@ -1,0 +1,61 @@
+---
+
+- name: Airflow | Check users
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.command: "{{ airflow_executable }} users list"
+  register: airflow_check_users
+  changed_when: false
+  no_log: true
+
+- name: Airflow | Create Admin users
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ airflow_executable }}"
+      - users
+      - create
+      - --username
+      - "{{ item.username }}"
+      - --password
+      - "{{ item.password }}"
+      - --firstname
+      - "{{ item.firstname }}"
+      - --lastname
+      - "{{ item.lastname }}"
+      - --role
+      - "{{ item.role }}"
+      - --email
+      - "{{ item.email }}"
+  no_log: true
+  with_items: "{{ airflow_admin_users }}"
+  when:
+    - "item.email not in airflow_check_users.stdout"
+  register: airflow_created_admin_users
+
+- name: Airflow | Create regular users
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ airflow_executable }}"
+      - users
+      - create
+      - --username
+      - "{{ item.username }}"
+      - --password
+      - "{{ item.password }}"
+      - --firstname
+      - "{{ item.firstname }}"
+      - --lastname
+      - "{{ item.lastname }}"
+      - --role
+      - "{{ item.role }}"
+      - --email
+      - "{{ item.email }}"
+  # no_log: true
+  with_items: "{{ airflow_regular_users }}"
+  when:
+    - airflow_regular_users is defined
+    - "item.email not in airflow_check_users.stdout"

@@ -1,0 +1,41 @@
+- name: Create user grafana
+  ansible.builtin.user:
+    name: grafana
+    uid: 472
+    system: true
+    home: "{{ grafana_path }}"
+    create_home: false
+    shell: /bin/false
+    password: "!"
+    groups: docker
+    append: true
+
+- name: Create folders
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0770"
+  loop:
+    - "{{ grafana_path }}"
+    - "{{ grafana_path }}/data"
+    
+
+- name: Copy docker-compose
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ grafana_path }}/docker-compose.yml"
+    owner: grafana
+    group: grafana
+    mode: "0660"
+  notify: Restart grafana
+
+- name: Create service
+  ansible.builtin.template:
+    src: airflow.service.j2
+    dest: /etc/systemd/system/grafana.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart grafana

@@ -1,0 +1,6 @@
+{% for cfg in airflow_cfg %}
+[{{ cfg.section }}]
+{% for key, value in cfg.settings.items() %}
+{{key}} = {{value}}
+{% endfor %}
+{% endfor %}

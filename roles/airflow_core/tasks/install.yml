@@ -1,0 +1,89 @@
+---
+
+- name: Airflow | Ensure Airflow group
+  ansible.builtin.group:
+    name: "{{ airflow_group }}"
+  become: true
+
+- name: Airflow | Ensure Airflow user
+  ansible.builtin.user:
+    name: "{{ airflow_user }}"
+    group: "{{ airflow_group }}"
+    system: true
+    shell: "{{ airflow_shell }}"
+    createhome: "{{ airflow_createhome }}"
+    home: "{{ airflow_user_home }}"
+  become: true
+
+- name: Airflow | Ensure airflow skeleton paths
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ airflow_user }}"
+    group: "{{ airflow_group }}"
+    state: directory
+  with_items: "{{ airflow_skeleton_paths }}"
+
+- name: Airflow | Copy profile.d file
+  ansible.builtin.template:
+    src: airflow-profile.d-file.j2
+    dest: "/etc/profile.d/airflow.sh"
+    mode: 0644
+
+- name: Airflow | Installing dependencies
+  ansible.builtin.apt:
+    pkg: "{{ airflow_required_libs }}"
+    state: present
+    update_cache: true
+
+- name: Airflow | Installing Python pip dependencies
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.pip:
+    name: "{{ item.name }}"
+    version: "{{ item.version | default(omit) }}"
+    virtualenv: "{{ airflow_app_home }}"
+    virtualenv_python: "python{{ airflow_python_version | default(omit) }}"
+  with_items: "{{ airflow_required_python_packages }}"
+  when: airflow_required_python_packages is defined
+
+- name: Airflow | Installing Airflow
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.pip:
+    name: "{{ airflow_package }}[{{ airflow_bundle_package | default(omit) }}]"
+    version: "{{ airflow_version }}"
+    state: present
+    virtualenv: "{{ airflow_app_home }}"
+    virtualenv_python: "python{{ airflow_python_version | default(omit) }}"
+    extra_args: --no-cache-dir
+  register: airflow_install
+  environment:
+    SLUGIFY_USES_TEXT_UNIDECODE: "yes"
+
+- name: Airflow | Installing Airflow Extra Packages
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.pip:
+    name: "apache-airflow[{{ airflow_extra_packages | join(', ') }}]"
+    version: "{{ airflow_version }}"
+    virtualenv: "{{ airflow_app_home }}"
+    virtualenv_python: "python{{ airflow_python_version | default(omit) }}"
+    state: present
+  when:
+    - airflow_extra_packages is defined
+    - not airflow_bundle_package
+
+- name: Airflow | Installing DAGs dependencies
+  become: true
+  become_user: "{{ airflow_user }}"
+  ansible.builtin.pip:
+    name: "{{ item.name }}"
+    version: "{{ item.version | default(omit) }}"
+    virtualenv: "{{ airflow_app_home }}"
+    virtualenv_python: "python{{ airflow_python_version | default(omit) }}"
+    extra_args: "{{ item.extra_args | default(omit) }}"
+    state: present
+  with_items: "{{ dags_dependencies }}"
+  when: dags_dependencies is defined
+  notify:
+    "{{ ['restart'] | product(airflow_services.values() | map(attribute='service_name')) | map('join', ' ') | list }}"

@@ -1,0 +1,206 @@
+---
+# [General]
+airflow_app_name: airflow
+airflow_version:  2.10.5
+airflow_package: apache-airflow
+
+# Owner
+airflow_user: airflow
+airflow_group: airflow
+airflow_shell: /usr/sbin/nologin
+airflow_createhome: yes
+
+# The default python version, if you want other version you should make sure it is
+# installed before
+airflow_python_version: 3
+
+# Airflow url to download the correct version
+airflow_constraint_url: "https://raw.githubusercontent.com/apache/airflow/constraints-{{ airflow_version }}/constraints-{{ airflow_python_version }}.txt"
+
+# Available extra packages:
+# https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
+# List should follow Ansible's YAML basics:
+# https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html#yaml-basics
+airflow_bundle_package:  # all|all_dbs|devel|devel_hadoop|devel_all|devel_ci See bundle extras section
+# airflow_extra_packages:
+  # [Apache]
+  # - apache.atlas
+  # - apache.beam
+  # - apache.cassandra
+  # - apache.druid
+  # - apache.hdfs
+  # - apache.hive
+  # - apache.kylin
+  # - apache.livy
+  # - apache.pig
+  # - apache.pinot
+  # - apache.spark
+  # - apache.sqoop
+  # - apache.webhdfs
+  # [Services]
+  # - amazon
+  # - microsoft.azure
+  # - cloudant
+  # - databricks
+  # - datadog
+  # - dask
+  # - dingding
+  # - discord
+  # - facebook
+  # - google
+  # - github_enterprise
+  # - google_auth
+  # - hashicorp
+  # - jira
+  # - opsgenie
+  # - pagerduty
+  # - plexus
+  # - qubole
+  # - salesforce
+  # - sendgrid
+  # - segment
+  # - sentry
+  # - slack
+  # - snowflake
+  # - telegram
+  # - vertica
+  # - yandex
+  # - zendesk
+  # [Software]
+  # - async
+  # - celery
+  # - cncf.kubernetes
+  # - docker
+  # - elasticsearch
+  # - exasol
+  # - jenkins
+  # - ldap
+  # - mongo
+  # - microsoft.mssql
+  # - mysql
+  # - odbc
+  # - openfaas
+  # - oracle
+  # - postgres
+  # - password
+  # - presto
+  # - rabbitmq
+  # - redis
+  # - samba
+  # - singularity
+  # - statsd
+  # - tableau
+  # - virtualenv
+  # [Others]
+  # - cgroups
+  # - ftp
+  # - grpc
+  # - http
+  # - imap
+  # - jdbc
+  # - kerberos
+  # - papermill
+  # - sftp
+  # - sqlite
+  # - ssh
+  # - microsoft.winrm
+
+airflow_default_required_libs:
+  - python3-dev
+  - python3-pip
+  - python3-setuptools
+  - python3-virtualenv
+
+airflow_additional_required_libs: []
+
+airflow_required_libs: "{{ airflow_default_required_libs + airflow_additional_required_libs }}"
+
+# Maybe not necessary but recommended by us :)
+airflow_required_python_packages:
+  - { name: SQLAlchemy }
+  - { name: psycopg2-binary }
+  - { name: pandas }
+
+# Admin user
+airflow_admin_users:
+  - name:
+    username:
+    password:
+    role:
+    firstname:
+    lastname:
+    email:
+
+# Admin user
+# airflow_regular_users:
+#   - name:
+#     username:
+#     password:
+#     role:
+#     firstname:
+#     lastname:
+#     email:
+
+# Service options
+# airflow_scheduler_runs: 1000
+airflow_private_tmp: false
+
+airflow_services:
+  airflow_webserver:
+    service_name: airflow-webserver
+    enabled: true
+    running: true
+    state: started
+    path: airflow-webserver.service.j2
+  airflow_scheduler:
+    service_name: airflow-scheduler
+    enabled: true
+    running: true
+    state: started
+    path: airflow-scheduler.service.j2
+  airflow_worker:
+    service_name: airflow-worker
+    enabled: false
+    running: false
+    state: started
+    path: airflow-worker.service.j2
+  airflow_flower:
+    service_name: airflow-flower
+    enabled: false
+    running: false
+    state: started
+    path: airflow-flower.service.j2
+
+# Files & Paths
+airflow_executable: "{{ airflow_app_home }}/bin/airflow"
+airflow_pip_executable: "pip3"
+airflow_user_home: "/var/lib/{{ airflow_user }}"
+airflow_app_home: "/opt/{{ airflow_app_name }}"
+airflow_conf_path: "/etc/{{ airflow_app_name }}"
+airflow_pidfile_folder: "/run/{{ airflow_app_name }}"
+airflow_environment_file_folder: /etc/sysconfig
+airflow_environment_extra_vars: []
+airflow_health_url: "http://{{ airflow_webserver_host }}:{{ airflow_webserver_port }}/health"
+airflow_dags_folder: "{{ airflow_app_home }}/dags"
+airflow_logs_folder: /var/log/airflow
+airflow_child_process_log_folder: "{{ airflow_logs_folder }}/scheduler"
+airflow_plugins_folder: "{{ airflow_app_home }}/plugins"
+airflow_skeleton_paths:
+  - "{{ airflow_app_home }}"
+  - "{{ airflow_conf_path }}"
+  - "{{ airflow_dags_folder }}"
+  - "{{ airflow_logs_folder }}"
+  - "{{ airflow_child_process_log_folder }}"
+  - "{{ airflow_environment_file_folder }}"
+  - "{{ airflow_plugins_folder }}"
+
+# Allowing playbooks to provide external config files&templates
+airflow_extra_conf_path: "{{ playbook_dir }}/files/airflow"
+airflow_extra_conf_template_path: "{{ playbook_dir }}/templates/airflow"
+airflow_config_template_path: airflow.cfg.j2
+
+# DAGs
+# Python dependencies needed by the DAGs. This variable is expected to be a
+# list of items following the structure provided in the example comment
+# dags_dependencies:
+#   - {name: pip_package, version: version_needed}

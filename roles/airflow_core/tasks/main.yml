@@ -1,0 +1,25 @@
+---
+
+- name: Airflow | Install
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - install
+    - airflow_install
+
+- name: Airflow | Config
+  ansible.builtin.import_tasks: config.yml
+  tags:
+    - config
+    - airflow_config
+
+- name: Airflow | Users
+  ansible.builtin.import_tasks: users.yml
+  tags:
+    - users
+    - airflow_users
+
+- name: Airflow | Service
+  ansible.builtin.import_tasks: service.yml
+  tags:
+    - service
+    - airflow_service

@@ -1,0 +1,23 @@
+---
+
+airflow_webserver_port: 8080
+airflow_cfg: "{{ [airflow_cfg_default, airflow_cfg_base | default([]), airflow_cfg_extra | default([])] | community.general.lists_mergeby('section', recursive=true) }}"
+
+# AIRFLOW CONFIGURATION https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html
+airflow_cfg_default:
+  - section: core
+    settings:
+      dags_folder: "{{ airflow_app_home }}/dags"
+      dags_are_paused_at_creation: True
+      load_examples: False
+      load_default_connections: False
+      plugins_folder: "{{ airflow_app_home }}/plugins"
+  - section: logging
+    settings:
+      logs_folder: "{{ airflow_logs_folder }}"
+      dag_processor_manager_log_location: "{{ airflow_logs_folder }}/dag_processor_manager/dag_processor_manager.log"
+  - section: webserver
+    settings:
+      base_url: "http://localhost:{{ airflow_webserver_port }}"
+      access_logfile: "{{ airflow_logs_folder }}/gunicorn-access.log"
+      error_logfile: "{{ airflow_logs_folder }}/gunicorn-error.log"
